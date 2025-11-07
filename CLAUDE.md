@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Development Commands
 
 ### Starting Development
+
 ```bash
 npm run dev           # Start Vite dev server at http://localhost:5173
 npm run build         # Build for production (outputs to dist/)
@@ -16,12 +17,14 @@ npm run format:check  # Check if files are formatted
 ```
 
 ### TypeScript Configuration
+
 - Project uses strict TypeScript with `noImplicitAny` and `strictNullChecks` enabled
 - All types defined in `src/types/index.ts`
 - tsconfig.json configured with strict mode and additional checks
 - No `any` types allowed - use proper typing
 
 ### Code Formatting
+
 - **Prettier** is configured for consistent code formatting
 - Configuration in `.prettierrc.json`:
   - Single quotes for strings
@@ -32,6 +35,7 @@ npm run format:check  # Check if files are formatted
 - Files automatically formatted on save via hooks
 
 ### Linting and Quality Checks
+
 - **ESLint** is configured with React Hooks and React Refresh plugins
 - Unused vars starting with uppercase or underscore are allowed
 - **Automated hooks** run after every file edit:
@@ -47,12 +51,26 @@ npm run format:check  # Check if files are formatted
 This is a React + TypeScript single-page application for practicing hiragana writing with three main views:
 
 1. **Character Selector** (`CharacterSelector.tsx`): UI for selecting hiragana groups to practice
-2. **Practice Mode** (`PromptCard.tsx`): Random prompt display with reveal/answer workflow
+2. **Practice Mode** (`PromptCard.tsx`): Displays romaji prompts for users to write hiragana on paper, then reveals correct character for self-assessment
 3. **Statistics View** (`Statistics.tsx`): Progress tracking and performance analytics
+
+### Practice Workflow
+
+The app prompts users to practice **writing** hiragana characters:
+
+1. App displays **romaji** (e.g., "ka")
+2. User **writes the hiragana** (か) on paper/notebook
+3. User clicks **"Reveal"**
+4. App shows the **correct hiragana** character
+5. User **self-assesses** if they wrote it correctly (clicks ✓ or ✗)
+6. Progress is tracked in localStorage
+
+This is a writing practice tool, not a reading/recognition quiz. The app shows romaji prompts so users can practice drawing the correct hiragana characters.
 
 ### State Management Pattern
 
 **App.tsx** is the central state controller:
+
 - `view`: Controls which screen is displayed ('selector', 'practice', 'stats')
 - `selectedCharacters`: Array of character objects user wants to practice
 - `currentCharacter`: The character currently being shown
@@ -63,6 +81,7 @@ This is a React + TypeScript single-page application for practicing hiragana wri
 ### Data Layer
 
 **hiraganaData** (`src/data/hiragana.ts`):
+
 - Master array of 92 hiragana character objects
 - Each object typed as `HiraganaCharacter`: `{ id: string, hiragana: string, romaji: string, group: HiraganaGroupId, row: HiraganaRowId }`
 - Groups organized by Japanese row system (vowels, k-row, s-row, etc.)
@@ -71,6 +90,7 @@ This is a React + TypeScript single-page application for practicing hiragana wri
 ### Type System
 
 **All types defined in** (`src/types/index.ts`):
+
 - `HiraganaCharacter`: Individual character with id, hiragana, romaji, group, row
 - `HiraganaGroupId`: Union type of all valid group IDs
 - `HiraganaRowId`: Union type of all valid row IDs
@@ -97,6 +117,7 @@ This is a React + TypeScript single-page application for practicing hiragana wri
 ```
 
 **Key functions**:
+
 - `saveAttempt(characterId, isCorrect)`: Records each practice attempt
 - `getCharacterStats(characterId)`: Returns stats for specific character
 - `getOverallStats()`: Aggregates all progress data
@@ -161,16 +182,19 @@ All component props are strictly typed via interfaces defined in `src/types/inde
 Currently no automated tests. Manual testing workflow:
 
 1. Select various character groups
-2. Verify randomization doesn't repeat immediately
-3. Check statistics update correctly after attempts
-4. Test localStorage persistence across sessions
-5. Verify mobile responsiveness
+2. Verify romaji prompts are displayed correctly
+3. Verify reveal shows correct hiragana characters
+4. Check that randomization doesn't repeat immediately
+5. Test both ✓ and ✗ buttons update statistics correctly
+6. Test localStorage persistence across sessions
+7. Verify mobile responsiveness
 
 ## Continuous Integration
 
 ### GitHub Actions Workflow
 
 The project includes an automated CI workflow (`.github/workflows/ci.yml`) that runs on:
+
 - Push to `main` branch
 - Pull requests to `main` branch
 
@@ -202,61 +226,47 @@ All checks must pass for the workflow to succeed. The CI badge in the README sho
 
 ## Continuous Deployment
 
-### Deployment Targets
+### Deployment Target
 
-The project is deployed to two platforms:
-1. **GitHub Pages** (Production): https://gpressutto5.github.io/hiragana-writing-prompts/
-2. **Vercel** (Production + PR Previews): Auto-deploys on push and for every PR
+The project is deployed to **Vercel** with automatic deployments on every push to `main` and preview deployments for every PR.
 
-### GitHub Pages Deployment
-
-Automatically deploys on every push to `main` via `.github/workflows/deploy.yml`.
-
-**Deployment Workflow:**
-1. Checks out the code
-2. Sets up Node.js 20 with npm caching
-3. Installs dependencies with `npm ci`
-4. Builds the project with `npm run build`
-5. Uploads the `dist/` folder as a Pages artifact
-6. Deploys to GitHub Pages
+**Production URL:** https://hiragana-writing-prompts.vercel.app
 
 ### Vercel Deployment
 
 **Setup via Vercel Dashboard:**
+
 1. Connected to GitHub repository at [vercel.com](https://vercel.com)
 2. Auto-detects Vite configuration
 3. Deploys `main` branch to production
 4. Creates preview deployments for every PR
 
 **Build Settings:**
+
 - Framework: Vite
 - Build Command: `npm run build`
 - Output Directory: `dist`
 - Install Command: `npm install`
 
 **PR Preview Workflow:**
+
 - Every PR gets a unique preview URL (e.g., `https://hiragana-writing-prompts-git-feature-*.vercel.app`)
 - Vercel bot comments on PRs with preview links
 - Previews update automatically on new commits
 - Previews are deleted when PR is closed/merged
 
-### Vite Base Path Configuration
+### Vite Configuration
 
-The `vite.config.js` uses environment detection for base paths:
-```javascript
-base: process.env.GITHUB_ACTIONS ? '/hiragana-writing-prompts/' : '/',
-```
+The `vite.config.js` uses the default root path (`/`) for all deployments:
 
-**How it works:**
-- **GitHub Actions** (GitHub Pages): Uses `/hiragana-writing-prompts/` subdirectory
-- **Vercel & Local Dev**: Uses `/` root path
-- Automatically handles asset loading for both environments
-
-**Important:** If you change the repository name, update the base path in `vite.config.js` to match.
+- **Vercel**: Uses root path for production and preview deployments
+- **Local Dev**: Uses root path for development server
+- Automatically handles asset loading for all environments
 
 ## Known Patterns
 
 ### Anti-Repetition Logic
+
 ```typescript
 // In nextCharacter()
 const availableChars: HiraganaCharacter[] = chars.filter(
@@ -266,19 +276,25 @@ const availableChars: HiraganaCharacter[] = chars.filter(
 ```
 
 ### Success Rate Calculation
+
 Always check for division by zero:
+
 ```typescript
-successRate = attempts > 0 ? (correct / attempts) * 100 : 0
+successRate = attempts > 0 ? (correct / attempts) * 100 : 0;
 ```
 
 ### Group-Based Selection
+
 Characters can be filtered by `group` property to get all characters in a row:
+
 ```typescript
-hiraganaData.filter(char => char.group === 'k-row')
+hiraganaData.filter(char => char.group === 'k-row');
 ```
 
 ### Null Safety Pattern
+
 Due to strict null checks, always handle potential null/undefined:
+
 ```typescript
 const randomChar = getRandomCharacter(charsToUse);
 if (!randomChar) return; // Guard clause
@@ -288,6 +304,7 @@ setCurrentCharacter(randomChar);
 ## Future Considerations
 
 The README lists potential enhancements:
+
 - Stroke order diagrams
 - Spaced repetition algorithm
 - Katakana support

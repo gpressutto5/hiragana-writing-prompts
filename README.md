@@ -1,5 +1,7 @@
 # Hiragana Writing Practice App
 
+[![CI](https://github.com/gpressutto5/hiragana-writing-prompts/actions/workflows/ci.yml/badge.svg)](https://github.com/gpressutto5/hiragana-writing-prompts/actions/workflows/ci.yml)
+
 A simple, focused web app for practicing hiragana writing through random prompts and self-assessment.
 
 ## Features
@@ -82,30 +84,40 @@ npm run preview
 ```
 hiragana-writing-prompts/
 ├── src/
-│   ├── components/          # React components
-│   │   ├── CharacterSelector.jsx
-│   │   ├── PromptCard.jsx
-│   │   └── Statistics.jsx
+│   ├── components/          # React components (TypeScript)
+│   │   ├── CharacterSelector.tsx
+│   │   ├── PromptCard.tsx
+│   │   └── Statistics.tsx
 │   ├── data/                # Hiragana character data
-│   │   └── hiragana.js
+│   │   └── hiragana.ts
+│   ├── types/               # TypeScript type definitions
+│   │   └── index.ts
 │   ├── utils/               # Utility functions
-│   │   └── progressTracker.js
-│   ├── App.jsx              # Main application component
+│   │   └── progressTracker.ts
+│   ├── App.tsx              # Main application component
 │   ├── App.css              # Application styles
 │   ├── index.css            # Global styles (Tailwind)
-│   └── main.jsx             # Application entry point
+│   └── main.tsx             # Application entry point
+├── .github/
+│   └── workflows/           # GitHub Actions CI/CD
+│       └── ci.yml
 ├── public/                  # Static assets
 ├── index.html               # HTML template
 ├── package.json             # Dependencies and scripts
+├── tsconfig.json            # TypeScript configuration
 ├── vite.config.js           # Vite configuration
+├── .prettierrc.json         # Prettier configuration
 └── tailwind.config.js       # Tailwind CSS configuration
 ```
 
 ## Technology Stack
 
 - **React 19**: UI framework
+- **TypeScript**: Strict type safety and better developer experience
 - **Vite**: Build tool and development server
 - **Tailwind CSS**: Utility-first CSS framework
+- **Prettier**: Code formatting
+- **ESLint**: Code linting
 - **localStorage**: Client-side progress persistence
 
 ## Features in Detail

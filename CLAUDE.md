@@ -166,6 +166,40 @@ Currently no automated tests. Manual testing workflow:
 4. Test localStorage persistence across sessions
 5. Verify mobile responsiveness
 
+## Continuous Integration
+
+### GitHub Actions Workflow
+
+The project includes an automated CI workflow (`.github/workflows/ci.yml`) that runs on:
+- Push to `main` branch
+- Pull requests to `main` branch
+
+### CI Checks
+
+The workflow runs the following quality checks in order:
+
+1. **Prettier Format Check** (`npm run format:check`)
+   - Verifies all files follow formatting rules
+   - Fails if any files need formatting
+
+2. **ESLint** (`npm run lint`)
+   - Checks for code quality issues
+   - Enforces React best practices
+
+3. **TypeScript Type Check** (`npm run type-check`)
+   - Validates all types across the project
+   - Ensures strict type safety
+
+4. **Build** (`npm run build`)
+   - Verifies the project builds successfully
+   - Catches any build-time errors
+
+5. **Artifact Upload**
+   - Uploads build output (`dist/`) as workflow artifact
+   - Retained for 7 days for review
+
+All checks must pass for the workflow to succeed. The CI badge in the README shows the current status.
+
 ## Known Patterns
 
 ### Anti-Repetition Logic

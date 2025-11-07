@@ -1,8 +1,11 @@
 # Hiragana Writing Practice App
 
 [![CI](https://github.com/gpressutto5/hiragana-writing-prompts/actions/workflows/ci.yml/badge.svg)](https://github.com/gpressutto5/hiragana-writing-prompts/actions/workflows/ci.yml)
+[![Deploy](https://github.com/gpressutto5/hiragana-writing-prompts/actions/workflows/deploy.yml/badge.svg)](https://github.com/gpressutto5/hiragana-writing-prompts/actions/workflows/deploy.yml)
 
 A simple, focused web app for practicing hiragana writing through random prompts and self-assessment.
+
+**🚀 [Try it live on GitHub Pages](https://gpressutto5.github.io/hiragana-writing-prompts/)**
 
 ## Features
 
@@ -59,6 +62,13 @@ To preview the production build:
 npm run preview
 ```
 
+### Deployment
+
+This project is automatically deployed to GitHub Pages on every push to the `main` branch. The live version is available at:
+https://gpressutto5.github.io/hiragana-writing-prompts/
+
+The deployment workflow is configured in `.github/workflows/deploy.yml` and uses GitHub Actions.
+
 ## How to Use
 
 ### Step 1: Select Characters
@@ -100,7 +110,8 @@ hiragana-writing-prompts/
 │   └── main.tsx             # Application entry point
 ├── .github/
 │   └── workflows/           # GitHub Actions CI/CD
-│       └── ci.yml
+│       ├── ci.yml           # Continuous integration checks
+│       └── deploy.yml       # GitHub Pages deployment
 ├── public/                  # Static assets
 ├── index.html               # HTML template
 ├── package.json             # Dependencies and scripts

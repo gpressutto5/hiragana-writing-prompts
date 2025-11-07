@@ -200,6 +200,33 @@ The workflow runs the following quality checks in order:
 
 All checks must pass for the workflow to succeed. The CI badge in the README shows the current status.
 
+## Continuous Deployment
+
+### GitHub Pages Deployment
+
+The project is automatically deployed to GitHub Pages on every push to the `main` branch via `.github/workflows/deploy.yml`.
+
+**Deployment Workflow:**
+1. Checks out the code
+2. Sets up Node.js 20 with npm caching
+3. Installs dependencies with `npm ci`
+4. Builds the project with `npm run build`
+5. Uploads the `dist/` folder as a Pages artifact
+6. Deploys to GitHub Pages
+
+**Live Site:** https://gpressutto5.github.io/hiragana-writing-prompts/
+
+### Vite Configuration for GitHub Pages
+
+The `vite.config.js` includes the `base` setting for GitHub Pages:
+```javascript
+base: '/hiragana-writing-prompts/'
+```
+
+This ensures all assets are loaded with the correct path when deployed to a GitHub Pages subdirectory.
+
+**Important:** If you change the repository name, update the `base` path in `vite.config.js` to match.
+
 ## Known Patterns
 
 ### Anti-Repetition Logic

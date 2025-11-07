@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import CharacterSelector from './components/CharacterSelector';
 import PromptCard from './components/PromptCard';
 import Statistics from './components/Statistics';
@@ -57,6 +57,45 @@ function App() {
     setSelectedCharacters([]);
     setRecentCharacters([]);
   };
+
+  // Global keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if typing in an input field
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      const key = e.key.toLowerCase();
+
+      // Tab: Switch between views (only when not in practice mode or practice mode is available)
+      if (key === 'tab') {
+        e.preventDefault();
+        if (view === 'selector') {
+          if (selectedCharacters.length > 0) {
+            setView('practice');
+          } else {
+            setView('stats');
+          }
+        } else if (view === 'practice') {
+          setView('stats');
+        } else if (view === 'stats') {
+          setView('selector');
+        }
+        return;
+      }
+
+      // R: Reset/restart practice (only in practice mode)
+      if (key === 'r' && view === 'practice' && selectedCharacters.length > 0) {
+        e.preventDefault();
+        nextCharacter(selectedCharacters);
+        return;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [view, selectedCharacters, nextCharacter]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -121,6 +160,14 @@ function App() {
         {/* Footer */}
         <footer className="text-center mt-8 text-gray-500 text-sm">
           <p>Practice daily for best results! がんばって!</p>
+          <div className="mt-4 text-xs">
+            <p className="font-semibold mb-2">Keyboard Shortcuts:</p>
+            <p>
+              <kbd className="px-1.5 py-0.5 bg-gray-200 rounded text-xs">Tab</kbd> Switch views •{' '}
+              <kbd className="px-1.5 py-0.5 bg-gray-200 rounded text-xs">R</kbd> Next character (in
+              practice)
+            </p>
+          </div>
         </footer>
       </div>
     </div>

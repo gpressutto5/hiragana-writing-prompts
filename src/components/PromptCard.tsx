@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { PromptCardProps } from '../types';
 
 function PromptCard({ character, onAnswer, onBack }: PromptCardProps) {
@@ -12,6 +12,45 @@ function PromptCard({ character, onAnswer, onBack }: PromptCardProps) {
     onAnswer(isCorrect);
     setRevealed(false);
   };
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if typing in an input field
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      const key = e.key.toLowerCase();
+
+      // Space or Enter: Reveal answer (only when not revealed)
+      if (!revealed && (key === ' ' || key === 'enter')) {
+        e.preventDefault();
+        handleReveal();
+        return;
+      }
+
+      // When revealed, handle answer shortcuts
+      if (revealed) {
+        // Correct answers: O, Y, or Right arrow
+        if (key === 'o' || key === 'y' || key === 'arrowright') {
+          e.preventDefault();
+          handleAnswer(true);
+          return;
+        }
+
+        // Incorrect answers: X, N, or Left arrow
+        if (key === 'x' || key === 'n' || key === 'arrowleft') {
+          e.preventDefault();
+          handleAnswer(false);
+          return;
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [revealed, handleReveal, handleAnswer]);
 
   return (
     <div className="flex flex-col items-center">
@@ -46,6 +85,10 @@ function PromptCard({ character, onAnswer, onBack }: PromptCardProps) {
               >
                 Reveal Answer
               </button>
+              <p className="text-sm text-gray-500 mt-3">
+                Keyboard: <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">Space</kbd> or{' '}
+                <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">Enter</kbd>
+              </p>
             </div>
           </>
         )}
@@ -78,6 +121,14 @@ function PromptCard({ character, onAnswer, onBack }: PromptCardProps) {
                   ○ Correct
                 </button>
               </div>
+              <p className="text-sm text-gray-500 mt-3">
+                Keyboard: <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">X</kbd>/
+                <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">N</kbd>/
+                <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">←</kbd> for incorrect,{' '}
+                <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">O</kbd>/
+                <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">Y</kbd>/
+                <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">→</kbd> for correct
+              </p>
             </div>
           </>
         )}

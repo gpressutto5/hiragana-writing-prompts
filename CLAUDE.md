@@ -202,9 +202,15 @@ All checks must pass for the workflow to succeed. The CI badge in the README sho
 
 ## Continuous Deployment
 
+### Deployment Targets
+
+The project is deployed to two platforms:
+1. **GitHub Pages** (Production): https://gpressutto5.github.io/hiragana-writing-prompts/
+2. **Vercel** (Production + PR Previews): Auto-deploys on push and for every PR
+
 ### GitHub Pages Deployment
 
-The project is automatically deployed to GitHub Pages on every push to the `main` branch via `.github/workflows/deploy.yml`.
+Automatically deploys on every push to `main` via `.github/workflows/deploy.yml`.
 
 **Deployment Workflow:**
 1. Checks out the code
@@ -214,18 +220,39 @@ The project is automatically deployed to GitHub Pages on every push to the `main
 5. Uploads the `dist/` folder as a Pages artifact
 6. Deploys to GitHub Pages
 
-**Live Site:** https://gpressutto5.github.io/hiragana-writing-prompts/
+### Vercel Deployment
 
-### Vite Configuration for GitHub Pages
+**Setup via Vercel Dashboard:**
+1. Connected to GitHub repository at [vercel.com](https://vercel.com)
+2. Auto-detects Vite configuration
+3. Deploys `main` branch to production
+4. Creates preview deployments for every PR
 
-The `vite.config.js` includes the `base` setting for GitHub Pages:
+**Build Settings:**
+- Framework: Vite
+- Build Command: `npm run build`
+- Output Directory: `dist`
+- Install Command: `npm install`
+
+**PR Preview Workflow:**
+- Every PR gets a unique preview URL (e.g., `https://hiragana-writing-prompts-git-feature-*.vercel.app`)
+- Vercel bot comments on PRs with preview links
+- Previews update automatically on new commits
+- Previews are deleted when PR is closed/merged
+
+### Vite Base Path Configuration
+
+The `vite.config.js` uses environment detection for base paths:
 ```javascript
-base: '/hiragana-writing-prompts/'
+base: process.env.GITHUB_ACTIONS ? '/hiragana-writing-prompts/' : '/',
 ```
 
-This ensures all assets are loaded with the correct path when deployed to a GitHub Pages subdirectory.
+**How it works:**
+- **GitHub Actions** (GitHub Pages): Uses `/hiragana-writing-prompts/` subdirectory
+- **Vercel & Local Dev**: Uses `/` root path
+- Automatically handles asset loading for both environments
 
-**Important:** If you change the repository name, update the `base` path in `vite.config.js` to match.
+**Important:** If you change the repository name, update the base path in `vite.config.js` to match.
 
 ## Known Patterns
 

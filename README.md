@@ -161,6 +161,7 @@ hiragana-writing-prompts/
 ## Future Enhancement Ideas
 
 - [ ] Keyboard shortcuts for faster interaction
+- [ ] Add calendar view for tracking daily practice streaks
 - [ ] Stroke order diagrams for visual reference
 - [ ] Spaced repetition algorithm for optimal practice scheduling
 - [ ] Practice sessions with time limits

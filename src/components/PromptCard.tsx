@@ -1,13 +1,14 @@
 import { useState } from 'react';
+import type { PromptCardProps } from '../types';
 
-function PromptCard({ character, onAnswer, onBack }) {
+function PromptCard({ character, onAnswer, onBack }: PromptCardProps) {
   const [revealed, setRevealed] = useState(false);
 
   const handleReveal = () => {
     setRevealed(true);
   };
 
-  const handleAnswer = (isCorrect) => {
+  const handleAnswer = (isCorrect: boolean) => {
     onAnswer(isCorrect);
     setRevealed(false);
   };
@@ -25,15 +26,11 @@ function PromptCard({ character, onAnswer, onBack }) {
       </button>
 
       <div className="w-full max-w-md">
-        <h2 className="text-2xl font-bold text-gray-800 mb-8 text-center">
-          Write this character:
-        </h2>
+        <h2 className="text-2xl font-bold text-gray-800 mb-8 text-center">Write this character:</h2>
 
         {/* Romaji prompt */}
         <div className="bg-gradient-to-br from-indigo-100 to-purple-100 rounded-2xl p-12 mb-8 text-center shadow-lg">
-          <div className="text-6xl font-bold text-indigo-900">
-            {character.romaji}
-          </div>
+          <div className="text-6xl font-bold text-indigo-900">{character.romaji}</div>
         </div>
 
         {/* Instructions */}
@@ -56,19 +53,13 @@ function PromptCard({ character, onAnswer, onBack }) {
           <div className="space-y-6">
             {/* Hiragana character */}
             <div className="bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl p-12 text-center shadow-lg">
-              <div className="text-8xl font-bold text-green-900">
-                {character.hiragana}
-              </div>
-              <div className="text-lg text-gray-600 mt-4">
-                {character.romaji}
-              </div>
+              <div className="text-8xl font-bold text-green-900">{character.hiragana}</div>
+              <div className="text-lg text-gray-600 mt-4">{character.romaji}</div>
             </div>
 
             {/* Self-assessment buttons */}
             <div className="text-center">
-              <p className="text-gray-600 mb-4 font-medium">
-                Did you write it correctly?
-              </p>
+              <p className="text-gray-600 mb-4 font-medium">Did you write it correctly?</p>
               <div className="flex gap-4 justify-center">
                 <button
                   onClick={() => handleAnswer(false)}

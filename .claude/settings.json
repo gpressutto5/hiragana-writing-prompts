@@ -6,7 +6,15 @@
         "hooks": [
           {
             "type": "command",
-            "command": "jq -r '.tool_input.file_path' | { read file_path; if echo \"$file_path\" | grep -q '\\.ts$'; then npx eslint --fix \"$file_path\"; fi; }"
+            "command": "jq -r '.tool_input.file_path' | { read file_path; case \"$file_path\" in *.ts|*.tsx|*.js|*.jsx|*.json|*.css|*.md) npx prettier --write \"$file_path\" ;; esac; }"
+          },
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path' | { read file_path; case \"$file_path\" in *.ts|*.tsx) npx eslint --fix \"$file_path\" ;; esac; }"
+          },
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path' | { read file_path; case \"$file_path\" in *.ts|*.tsx) npm run type-check ;; esac; }"
           }
         ]
       }

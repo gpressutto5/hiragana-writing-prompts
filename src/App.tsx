@@ -4,15 +4,16 @@ import PromptCard from './components/PromptCard';
 import Statistics from './components/Statistics';
 import { hiraganaData, getRandomCharacter } from './data/hiragana';
 import { saveAttempt } from './utils/progressTracker';
+import type { HiraganaCharacter, ViewType } from './types';
 import './App.css';
 
 function App() {
-  const [view, setView] = useState('selector'); // 'selector', 'practice', 'stats'
-  const [selectedCharacters, setSelectedCharacters] = useState([]);
-  const [currentCharacter, setCurrentCharacter] = useState(null);
-  const [recentCharacters, setRecentCharacters] = useState([]);
+  const [view, setView] = useState<ViewType>('selector');
+  const [selectedCharacters, setSelectedCharacters] = useState<HiraganaCharacter[]>([]);
+  const [currentCharacter, setCurrentCharacter] = useState<HiraganaCharacter | null>(null);
+  const [recentCharacters, setRecentCharacters] = useState<string[]>([]);
 
-  const startPractice = (characters) => {
+  const startPractice = (characters: HiraganaCharacter[]) => {
     if (characters.length === 0) {
       alert('Please select at least one character to practice!');
       return;
@@ -22,14 +23,14 @@ function App() {
     nextCharacter(characters);
   };
 
-  const nextCharacter = (chars = selectedCharacters) => {
+  const nextCharacter = (chars: HiraganaCharacter[] = selectedCharacters) => {
     // Filter out recently shown characters to avoid repetition
-    const availableChars = chars.filter(
-      char => !recentCharacters.includes(char.id)
-    );
+    const availableChars = chars.filter(char => !recentCharacters.includes(char.id));
 
     const charsToUse = availableChars.length > 0 ? availableChars : chars;
     const randomChar = getRandomCharacter(charsToUse);
+
+    if (!randomChar) return;
 
     setCurrentCharacter(randomChar);
 
@@ -40,7 +41,7 @@ function App() {
     });
   };
 
-  const handleAnswer = (isCorrect) => {
+  const handleAnswer = (isCorrect: boolean) => {
     if (!currentCharacter) return;
 
     // Save the attempt
@@ -61,9 +62,7 @@ function App() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <header className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-indigo-900 mb-2">
-            ひらがな Practice
-          </h1>
+          <h1 className="text-4xl font-bold text-indigo-900 mb-2">ひらがな Practice</h1>
           <p className="text-gray-600">Master hiragana through random practice</p>
         </header>
 
@@ -105,10 +104,7 @@ function App() {
         {/* Main Content */}
         <div className="bg-white rounded-2xl shadow-xl p-8">
           {view === 'selector' && (
-            <CharacterSelector
-              onStart={startPractice}
-              allCharacters={hiraganaData}
-            />
+            <CharacterSelector onStart={startPractice} allCharacters={hiraganaData} />
           )}
 
           {view === 'practice' && currentCharacter && (

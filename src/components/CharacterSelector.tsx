@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { groups } from '../data/hiragana';
+import type { CharacterSelectorProps, HiraganaGroupId } from '../types';
 
-function CharacterSelector({ onStart, allCharacters }) {
-  const [selectedGroups, setSelectedGroups] = useState(new Set());
-  const [selectedCharIds, setSelectedCharIds] = useState(new Set());
+function CharacterSelector({ onStart, allCharacters }: CharacterSelectorProps) {
+  const [selectedGroups, setSelectedGroups] = useState<Set<HiraganaGroupId>>(new Set());
+  const [selectedCharIds, setSelectedCharIds] = useState<Set<string>>(new Set());
 
-  const toggleGroup = (groupId) => {
+  const toggleGroup = (groupId: HiraganaGroupId) => {
     const newSelectedGroups = new Set(selectedGroups);
     const groupChars = allCharacters.filter(char => char.group === groupId);
 
@@ -37,19 +38,16 @@ function CharacterSelector({ onStart, allCharacters }) {
   };
 
   const handleStart = () => {
-    const selectedChars = allCharacters.filter(char =>
-      selectedCharIds.has(char.id)
-    );
+    const selectedChars = allCharacters.filter(char => selectedCharIds.has(char.id));
     onStart(selectedChars);
   };
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">
-        Select Characters to Practice
-      </h2>
+      <h2 className="text-2xl font-bold text-gray-800 mb-4">Select Characters to Practice</h2>
       <p className="text-gray-600 mb-6">
-        Choose the hiragana characters you want to practice. You can select entire groups or individual characters.
+        Choose the hiragana characters you want to practice. You can select entire groups or
+        individual characters.
       </p>
 
       {/* Quick actions */}
@@ -89,14 +87,26 @@ function CharacterSelector({ onStart, allCharacters }) {
                 <span className="text-sm text-gray-500">
                   {allCharacters.filter(c => c.group === group.id).length} characters
                 </span>
-                <div className={`w-6 h-6 rounded border-2 flex items-center justify-center ${
-                  selectedGroups.has(group.id)
-                    ? 'border-indigo-500 bg-indigo-500'
-                    : 'border-gray-300'
-                }`}>
+                <div
+                  className={`w-6 h-6 rounded border-2 flex items-center justify-center ${
+                    selectedGroups.has(group.id)
+                      ? 'border-indigo-500 bg-indigo-500'
+                      : 'border-gray-300'
+                  }`}
+                >
                   {selectedGroups.has(group.id) && (
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    <svg
+                      className="w-4 h-4 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                   )}
                 </div>
@@ -109,7 +119,8 @@ function CharacterSelector({ onStart, allCharacters }) {
       {/* Selected count and start button */}
       <div className="flex items-center justify-between">
         <div className="text-gray-600">
-          <span className="font-semibold text-indigo-600">{selectedCharIds.size}</span> characters selected
+          <span className="font-semibold text-indigo-600">{selectedCharIds.size}</span> characters
+          selected
         </div>
         <button
           onClick={handleStart}

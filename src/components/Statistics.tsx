@@ -1,5 +1,15 @@
-import { getOverallStats, getProgress, getCharacterStats, resetProgress } from '../utils/progressTracker';
+import {
+  getOverallStats,
+  getProgress,
+  getCharacterStats,
+  resetProgress,
+} from '../utils/progressTracker';
 import { hiraganaData } from '../data/hiragana';
+import type { HiraganaCharacter, CharacterStats } from '../types';
+
+interface CharacterWithStats extends HiraganaCharacter {
+  stats: CharacterStats;
+}
 
 function Statistics() {
   const overallStats = getOverallStats();
@@ -13,10 +23,10 @@ function Statistics() {
   };
 
   // Get characters with attempts, sorted by success rate (lowest first)
-  const charactersWithStats = hiraganaData
+  const charactersWithStats: CharacterWithStats[] = hiraganaData
     .map(char => ({
       ...char,
-      stats: getCharacterStats(char.id)
+      stats: getCharacterStats(char.id),
     }))
     .filter(char => char.stats.attempts > 0)
     .sort((a, b) => a.stats.successRate - b.stats.successRate);
@@ -38,15 +48,11 @@ function Statistics() {
       {/* Overall statistics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6 text-center">
-          <div className="text-3xl font-bold text-blue-900">
-            {overallStats.totalAttempts}
-          </div>
+          <div className="text-3xl font-bold text-blue-900">{overallStats.totalAttempts}</div>
           <div className="text-sm text-blue-700 mt-1">Total Attempts</div>
         </div>
         <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6 text-center">
-          <div className="text-3xl font-bold text-green-900">
-            {overallStats.totalCorrect}
-          </div>
+          <div className="text-3xl font-bold text-green-900">{overallStats.totalCorrect}</div>
           <div className="text-sm text-green-700 mt-1">Correct</div>
         </div>
         <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6 text-center">
@@ -56,9 +62,7 @@ function Statistics() {
           <div className="text-sm text-purple-700 mt-1">Success Rate</div>
         </div>
         <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-6 text-center">
-          <div className="text-3xl font-bold text-indigo-900">
-            {overallStats.charactersStudied}
-          </div>
+          <div className="text-3xl font-bold text-indigo-900">{overallStats.charactersStudied}</div>
           <div className="text-sm text-indigo-700 mt-1">Characters Studied</div>
         </div>
       </div>
@@ -66,9 +70,7 @@ function Statistics() {
       {/* Per-character statistics */}
       {charactersWithStats.length > 0 ? (
         <div>
-          <h3 className="text-xl font-bold text-gray-800 mb-4">
-            Character Performance
-          </h3>
+          <h3 className="text-xl font-bold text-gray-800 mb-4">Character Performance</h3>
           <div className="space-y-2">
             {charactersWithStats.map(char => (
               <div
@@ -76,13 +78,9 @@ function Statistics() {
                 className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
               >
                 <div className="flex items-center gap-4">
-                  <div className="text-4xl font-bold text-gray-800">
-                    {char.hiragana}
-                  </div>
+                  <div className="text-4xl font-bold text-gray-800">{char.hiragana}</div>
                   <div>
-                    <div className="font-medium text-gray-800">
-                      {char.romaji}
-                    </div>
+                    <div className="font-medium text-gray-800">{char.romaji}</div>
                     <div className="text-sm text-gray-500">
                       {char.stats.correct} / {char.stats.attempts} attempts
                     </div>
@@ -96,20 +94,22 @@ function Statistics() {
                         char.stats.successRate >= 80
                           ? 'bg-green-500'
                           : char.stats.successRate >= 50
-                          ? 'bg-yellow-500'
-                          : 'bg-red-500'
+                            ? 'bg-yellow-500'
+                            : 'bg-red-500'
                       }`}
                       style={{ width: `${char.stats.successRate}%` }}
                     ></div>
                   </div>
                   {/* Success rate */}
-                  <div className={`font-bold text-lg ${
-                    char.stats.successRate >= 80
-                      ? 'text-green-600'
-                      : char.stats.successRate >= 50
-                      ? 'text-yellow-600'
-                      : 'text-red-600'
-                  }`}>
+                  <div
+                    className={`font-bold text-lg ${
+                      char.stats.successRate >= 80
+                        ? 'text-green-600'
+                        : char.stats.successRate >= 50
+                          ? 'text-yellow-600'
+                          : 'text-red-600'
+                    }`}
+                  >
                     {char.stats.successRate.toFixed(0)}%
                   </div>
                 </div>
@@ -120,12 +120,8 @@ function Statistics() {
       ) : (
         <div className="text-center py-12">
           <div className="text-6xl mb-4">📝</div>
-          <h3 className="text-xl font-semibold text-gray-800 mb-2">
-            No practice data yet
-          </h3>
-          <p className="text-gray-600">
-            Start practicing to see your progress here!
-          </p>
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">No practice data yet</h3>
+          <p className="text-gray-600">Start practicing to see your progress here!</p>
         </div>
       )}
     </div>

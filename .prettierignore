@@ -1,0 +1,19 @@
+# Build outputs
+dist
+build
+*.min.js
+*.min.css
+
+# Dependencies
+node_modules
+package-lock.json
+
+# Generated files
+coverage
+.vite
+
+# Configuration files that should maintain specific formatting
+.eslintrc.cjs
+
+# Logs
+*.log

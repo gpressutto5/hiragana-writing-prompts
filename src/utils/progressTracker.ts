@@ -1,10 +1,12 @@
+import type { ProgressData, CharacterStats, OverallStats, RecentAttempt } from '../types';
+
 const STORAGE_KEY = 'hiragana_progress';
 
 // Get all progress data from localStorage
-export const getProgress = () => {
+export const getProgress = (): ProgressData => {
   try {
     const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : {};
+    return data ? (JSON.parse(data) as ProgressData) : {};
   } catch (error) {
     console.error('Error reading progress:', error);
     return {};
@@ -12,7 +14,7 @@ export const getProgress = () => {
 };
 
 // Save progress for a specific character
-export const saveAttempt = (characterId, isCorrect) => {
+export const saveAttempt = (characterId: string, isCorrect: boolean): ProgressData => {
   try {
     const progress = getProgress();
 
@@ -21,18 +23,23 @@ export const saveAttempt = (characterId, isCorrect) => {
         attempts: 0,
         correct: 0,
         lastAttempt: null,
-        history: []
+        history: [],
       };
     }
 
-    progress[characterId].attempts += 1;
-    if (isCorrect) {
-      progress[characterId].correct += 1;
+    const charProgress = progress[characterId];
+    if (!charProgress) {
+      throw new Error(`Failed to initialize progress for character: ${characterId}`);
     }
-    progress[characterId].lastAttempt = new Date().toISOString();
-    progress[characterId].history.push({
+
+    charProgress.attempts += 1;
+    if (isCorrect) {
+      charProgress.correct += 1;
+    }
+    charProgress.lastAttempt = new Date().toISOString();
+    charProgress.history.push({
       timestamp: new Date().toISOString(),
-      correct: isCorrect
+      correct: isCorrect,
     });
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
@@ -44,7 +51,7 @@ export const saveAttempt = (characterId, isCorrect) => {
 };
 
 // Get statistics for a specific character
-export const getCharacterStats = (characterId) => {
+export const getCharacterStats = (characterId: string): CharacterStats => {
   const progress = getProgress();
   const charProgress = progress[characterId];
 
@@ -53,7 +60,7 @@ export const getCharacterStats = (characterId) => {
       attempts: 0,
       correct: 0,
       successRate: 0,
-      lastAttempt: null
+      lastAttempt: null,
     };
   }
 
@@ -61,12 +68,12 @@ export const getCharacterStats = (characterId) => {
     attempts: charProgress.attempts,
     correct: charProgress.correct,
     successRate: (charProgress.correct / charProgress.attempts) * 100,
-    lastAttempt: charProgress.lastAttempt
+    lastAttempt: charProgress.lastAttempt,
   };
 };
 
 // Get overall statistics
-export const getOverallStats = () => {
+export const getOverallStats = (): OverallStats => {
   const progress = getProgress();
   const characterIds = Object.keys(progress);
 
@@ -75,7 +82,7 @@ export const getOverallStats = () => {
       totalAttempts: 0,
       totalCorrect: 0,
       overallSuccessRate: 0,
-      charactersStudied: 0
+      charactersStudied: 0,
     };
   }
 
@@ -83,20 +90,23 @@ export const getOverallStats = () => {
   let totalCorrect = 0;
 
   characterIds.forEach(id => {
-    totalAttempts += progress[id].attempts;
-    totalCorrect += progress[id].correct;
+    const charProgress = progress[id];
+    if (charProgress) {
+      totalAttempts += charProgress.attempts;
+      totalCorrect += charProgress.correct;
+    }
   });
 
   return {
     totalAttempts,
     totalCorrect,
     overallSuccessRate: totalAttempts > 0 ? (totalCorrect / totalAttempts) * 100 : 0,
-    charactersStudied: characterIds.length
+    charactersStudied: characterIds.length,
   };
 };
 
 // Reset all progress
-export const resetProgress = () => {
+export const resetProgress = (): boolean => {
   try {
     localStorage.removeItem(STORAGE_KEY);
     return true;
@@ -107,21 +117,21 @@ export const resetProgress = () => {
 };
 
 // Get recent attempts (last N)
-export const getRecentAttempts = (limit = 10) => {
+export const getRecentAttempts = (limit = 10): RecentAttempt[] => {
   const progress = getProgress();
-  const allAttempts = [];
+  const allAttempts: RecentAttempt[] = [];
 
   Object.entries(progress).forEach(([characterId, data]) => {
     data.history.forEach(attempt => {
       allAttempts.push({
         characterId,
-        ...attempt
+        ...attempt,
       });
     });
   });
 
   // Sort by timestamp descending
-  allAttempts.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  allAttempts.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
   return allAttempts.slice(0, limit);
 };

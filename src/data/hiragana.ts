@@ -1,4 +1,6 @@
-export const hiraganaData = [
+import type { HiraganaCharacter, HiraganaGroup, HiraganaGroupId } from '../types';
+
+export const hiraganaData: HiraganaCharacter[] = [
   // Vowels (あ行 - a row)
   { id: 'a', hiragana: 'あ', romaji: 'a', group: 'vowels', row: 'a' },
   { id: 'i', hiragana: 'い', romaji: 'i', group: 'vowels', row: 'a' },
@@ -102,7 +104,7 @@ export const hiraganaData = [
 ];
 
 // Group definitions for UI organization
-export const groups = [
+export const groups: HiraganaGroup[] = [
   { id: 'vowels', name: 'Vowels (あ行)', label: 'a i u e o' },
   { id: 'k-row', name: 'K Row (か行)', label: 'ka ki ku ke ko' },
   { id: 's-row', name: 'S Row (さ行)', label: 'sa shi su se so' },
@@ -121,13 +123,14 @@ export const groups = [
 ];
 
 // Helper function to get characters by group
-export const getCharactersByGroup = (groupId) => {
+export const getCharactersByGroup = (groupId: HiraganaGroupId): HiraganaCharacter[] => {
   return hiraganaData.filter(char => char.group === groupId);
 };
 
 // Helper function to get random character from a list
-export const getRandomCharacter = (characters) => {
+export const getRandomCharacter = (characters: HiraganaCharacter[]): HiraganaCharacter | null => {
   if (!characters || characters.length === 0) return null;
   const randomIndex = Math.floor(Math.random() * characters.length);
-  return characters[randomIndex];
+  const character = characters[randomIndex];
+  return character ?? null;
 };

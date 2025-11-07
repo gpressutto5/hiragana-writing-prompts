@@ -1,15 +1,15 @@
 # Hiragana Writing Practice App
 
 [![CI](https://github.com/gpressutto5/hiragana-writing-prompts/actions/workflows/ci.yml/badge.svg)](https://github.com/gpressutto5/hiragana-writing-prompts/actions/workflows/ci.yml)
-[![Deploy](https://github.com/gpressutto5/hiragana-writing-prompts/actions/workflows/deploy.yml/badge.svg)](https://github.com/gpressutto5/hiragana-writing-prompts/actions/workflows/deploy.yml)
 
 A simple, focused web app for practicing hiragana writing through random prompts and self-assessment.
 
-**🚀 [Try it live on GitHub Pages](https://gpressutto5.github.io/hiragana-writing-prompts/)**
+**🚀 [Try it live on Vercel](https://hiragana-writing-prompts.vercel.app)**
 
 ## Features
 
 ### Core Features
+
 - ✅ **Character Selection**: Choose which hiragana characters you want to practice
 - ✅ **Group Selection**: Select entire rows (vowels, ka-row, sa-row, etc.) at once
 - ✅ **Random Prompts**: Displays random romaji from your selected characters
@@ -20,6 +20,7 @@ A simple, focused web app for practicing hiragana writing through random prompts
 - ✅ **Responsive Design**: Works on desktop, tablet, and mobile devices
 
 ### Character Coverage
+
 - Complete hiragana chart (all 92 characters)
 - Basic characters (a, i, u, e, o, ka, ki, ku, ke, ko, etc.)
 - Dakuten characters (ga, gi, gu, ge, go, etc.)
@@ -28,22 +29,26 @@ A simple, focused web app for practicing hiragana writing through random prompts
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js 20.19+ or 22.12+ (or compatible version)
 - npm (comes with Node.js)
 
 ### Installation
 
 1. Clone the repository or navigate to the project directory:
+
    ```bash
    cd hiragana-writing-prompts
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    ```
 
 3. Start the development server:
+
    ```bash
    npm run dev
    ```
@@ -53,30 +58,34 @@ A simple, focused web app for practicing hiragana writing through random prompts
 ### Build for Production
 
 To create a production build:
+
 ```bash
 npm run build
 ```
 
 To preview the production build:
+
 ```bash
 npm run preview
 ```
 
 ### Deployment
 
-This project is automatically deployed to GitHub Pages on every push to the `main` branch. The live version is available at:
-https://gpressutto5.github.io/hiragana-writing-prompts/
+This project is automatically deployed to Vercel on every push to the `main` branch. The live version is available at:
+https://hiragana-writing-prompts.vercel.app
 
-The deployment workflow is configured in `.github/workflows/deploy.yml` and uses GitHub Actions.
+Vercel also creates preview deployments for every pull request, allowing you to test changes before merging.
 
 ## How to Use
 
 ### Step 1: Select Characters
+
 1. Click on "Select Characters" tab
 2. Choose the hiragana groups you want to practice
 3. Click "Start Practice" when ready
 
 ### Step 2: Practice
+
 1. A random romaji will be displayed (e.g., "ka")
 2. Write the corresponding hiragana in your notebook
 3. Click "Reveal Answer" to see the correct character
@@ -84,6 +93,7 @@ The deployment workflow is configured in `.github/workflows/deploy.yml` and uses
 5. Continue with the next character
 
 ### Step 3: Track Progress
+
 1. Click on "Statistics" tab to view your performance
 2. See overall success rate and total attempts
 3. View per-character statistics to identify characters needing more practice
@@ -111,7 +121,7 @@ hiragana-writing-prompts/
 ├── .github/
 │   └── workflows/           # GitHub Actions CI/CD
 │       ├── ci.yml           # Continuous integration checks
-│       └── deploy.yml       # GitHub Pages deployment
+│       └── claude.yml       # Claude Code automation
 ├── public/                  # Static assets
 ├── index.html               # HTML template
 ├── package.json             # Dependencies and scripts
@@ -134,18 +144,21 @@ hiragana-writing-prompts/
 ## Features in Detail
 
 ### Progress Tracking
+
 - All practice sessions are automatically saved to browser localStorage
 - Tracks attempts, correct answers, and success rate per character
 - Maintains history of all attempts with timestamps
 - Data persists across sessions (doesn't require login)
 
 ### Statistics
+
 - **Overall Stats**: Total attempts, correct answers, success rate, characters studied
 - **Per-Character Stats**: Individual success rates with visual progress bars
 - **Color-coded Performance**: Green (80%+), Yellow (50-79%), Red (<50%)
 - **Reset Progress**: Option to clear all data and start fresh
 
 ### Smart Randomization
+
 - Avoids showing the same character multiple times in a row
 - Maintains a history of recently shown characters
 - Ensures variety in practice sessions

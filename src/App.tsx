@@ -3,7 +3,7 @@ import CharacterSelector from './components/CharacterSelector';
 import PromptCard from './components/PromptCard';
 import Statistics from './components/Statistics';
 import { hiraganaData, getRandomCharacter } from './data/hiragana';
-import { saveAttempt } from './utils/progressTracker';
+import { saveAttempt, getCharactersDueForReview } from './utils/progressTracker';
 import type { HiraganaCharacter, ViewType } from './types';
 import './App.css';
 
@@ -24,11 +24,22 @@ function App() {
   };
 
   const nextCharacter = (chars: HiraganaCharacter[] = selectedCharacters) => {
-    // Filter out recently shown characters to avoid repetition
-    const availableChars = chars.filter(char => !recentCharacters.includes(char.id));
+    // Get characters due for review based on SRS
+    const dueChars = getCharactersDueForReview(chars);
 
-    const charsToUse = availableChars.length > 0 ? availableChars : chars;
-    const randomChar = getRandomCharacter(charsToUse);
+    // If we have due characters, prioritize them
+    let charsToPickFrom: HiraganaCharacter[];
+    if (dueChars.length > 0) {
+      // Filter out recently shown from due characters
+      const availableDueChars = dueChars.filter(char => !recentCharacters.includes(char.id));
+      charsToPickFrom = availableDueChars.length > 0 ? availableDueChars : dueChars;
+    } else {
+      // No due characters, fall back to all selected characters
+      const availableChars = chars.filter(char => !recentCharacters.includes(char.id));
+      charsToPickFrom = availableChars.length > 0 ? availableChars : chars;
+    }
+
+    const randomChar = getRandomCharacter(charsToPickFrom);
 
     if (!randomChar) return;
 
@@ -41,11 +52,11 @@ function App() {
     });
   };
 
-  const handleAnswer = (isCorrect: boolean) => {
+  const handleAnswer = (difficulty: number) => {
     if (!currentCharacter) return;
 
-    // Save the attempt
-    saveAttempt(currentCharacter.id, isCorrect);
+    // Save the attempt with difficulty rating
+    saveAttempt(currentCharacter.id, difficulty);
 
     // Move to next character
     nextCharacter();

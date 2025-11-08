@@ -8,8 +8,8 @@ function PromptCard({ character, onAnswer, onBack }: PromptCardProps) {
     setRevealed(true);
   };
 
-  const handleAnswer = (isCorrect: boolean) => {
-    onAnswer(isCorrect);
+  const handleAnswer = (difficulty: number) => {
+    onAnswer(difficulty);
     setRevealed(false);
   };
 
@@ -32,17 +32,31 @@ function PromptCard({ character, onAnswer, onBack }: PromptCardProps) {
 
       // When revealed, handle answer shortcuts
       if (revealed) {
-        // Correct answers: O, Y, or Right arrow
-        if (key === 'o' || key === 'y' || key === 'arrowright') {
+        // Again: 1 or X
+        if (key === '1' || key === 'x') {
           e.preventDefault();
-          handleAnswer(true);
+          handleAnswer(0);
           return;
         }
 
-        // Incorrect answers: X, N, or Left arrow
-        if (key === 'x' || key === 'n' || key === 'arrowleft') {
+        // Hard: 2 or H
+        if (key === '2' || key === 'h') {
           e.preventDefault();
-          handleAnswer(false);
+          handleAnswer(2);
+          return;
+        }
+
+        // Good: 3, Space, or Enter
+        if (key === '3' || key === ' ' || key === 'enter') {
+          e.preventDefault();
+          handleAnswer(3);
+          return;
+        }
+
+        // Easy: 4 or E
+        if (key === '4' || key === 'e') {
+          e.preventDefault();
+          handleAnswer(4);
           return;
         }
       }
@@ -102,32 +116,46 @@ function PromptCard({ character, onAnswer, onBack }: PromptCardProps) {
               <div className="text-lg text-gray-600 mt-4">{character.romaji}</div>
             </div>
 
-            {/* Self-assessment buttons */}
+            {/* Self-assessment buttons with difficulty rating */}
             <div className="text-center mb-8">
               <p className="text-gray-600 mb-4 font-medium h-12 flex items-center justify-center">
-                Did you write it correctly?
+                How well did you remember it?
               </p>
-              <div className="flex gap-4 justify-center">
+              <div className="grid grid-cols-2 gap-3 max-w-md mx-auto">
                 <button
-                  onClick={() => handleAnswer(false)}
-                  className="px-8 py-3 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors"
+                  onClick={() => handleAnswer(0)}
+                  className="px-6 py-3 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors"
                 >
-                  ✕ Incorrect
+                  Again
+                  <div className="text-xs opacity-90">Completely forgot</div>
                 </button>
                 <button
-                  onClick={() => handleAnswer(true)}
-                  className="px-8 py-3 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors"
+                  onClick={() => handleAnswer(2)}
+                  className="px-6 py-3 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition-colors"
                 >
-                  ○ Correct
+                  Hard
+                  <div className="text-xs opacity-90">Difficult recall</div>
+                </button>
+                <button
+                  onClick={() => handleAnswer(3)}
+                  className="px-6 py-3 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors"
+                >
+                  Good
+                  <div className="text-xs opacity-90">Correct with effort</div>
+                </button>
+                <button
+                  onClick={() => handleAnswer(4)}
+                  className="px-6 py-3 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors"
+                >
+                  Easy
+                  <div className="text-xs opacity-90">Perfect recall</div>
                 </button>
               </div>
               <p className="text-sm text-gray-500 mt-3">
-                Keyboard: <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">X</kbd>/
-                <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">N</kbd>/
-                <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">←</kbd> for incorrect,{' '}
-                <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">O</kbd>/
-                <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">Y</kbd>/
-                <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">→</kbd> for correct
+                Keyboard: <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">1/X</kbd> Again,{' '}
+                <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">2/H</kbd> Hard,{' '}
+                <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">3/Space</kbd> Good,{' '}
+                <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">4/E</kbd> Easy
               </p>
             </div>
           </>

@@ -95,7 +95,7 @@ export interface StreakData {
 }
 
 // App state types
-export type ViewType = 'selector' | 'practice' | 'stats' | 'calendar';
+export type ViewType = 'selector' | 'practice' | 'stats';
 
 // Component prop types
 export interface CharacterSelectorProps {

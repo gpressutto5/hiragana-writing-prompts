@@ -123,12 +123,12 @@ function Calendar() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Practice Calendar</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-xl font-bold text-gray-800">Practice Calendar</h3>
         <div className="flex gap-2">
           <button
             onClick={() => setViewMode('month')}
-            className={`px-4 py-2 rounded-lg font-medium transition-all ${
+            className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${
               viewMode === 'month'
                 ? 'bg-indigo-600 text-white'
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -138,7 +138,7 @@ function Calendar() {
           </button>
           <button
             onClick={() => setViewMode('week')}
-            className={`px-4 py-2 rounded-lg font-medium transition-all ${
+            className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${
               viewMode === 'week'
                 ? 'bg-indigo-600 text-white'
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -150,39 +150,33 @@ function Calendar() {
       </div>
 
       {/* Streak Statistics */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-6 text-center">
-          <div className="text-4xl font-bold text-orange-900">{streakData.currentStreak}</div>
-          <div className="text-sm text-orange-700 mt-1">Current Streak</div>
-          <div className="text-xs text-orange-600 mt-2">
-            {streakData.currentStreak > 0 ? 'Keep it up!' : 'Start practicing today!'}
-          </div>
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 text-center">
+          <div className="text-3xl font-bold text-orange-900">{streakData.currentStreak}</div>
+          <div className="text-xs text-orange-700 mt-1">Current Streak</div>
         </div>
-        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6 text-center">
-          <div className="text-4xl font-bold text-purple-900">{streakData.longestStreak}</div>
-          <div className="text-sm text-purple-700 mt-1">Longest Streak</div>
-          <div className="text-xs text-purple-600 mt-2">
-            {streakData.longestStreak > 0 ? 'Personal best!' : 'No streak yet'}
-          </div>
+        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 text-center">
+          <div className="text-3xl font-bold text-purple-900">{streakData.longestStreak}</div>
+          <div className="text-xs text-purple-700 mt-1">Longest Streak</div>
         </div>
       </div>
 
       {/* Calendar Navigation */}
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center mb-3">
         <button
           onClick={viewMode === 'month' ? previousMonth : previousWeek}
-          className="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors"
+          className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors text-sm"
         >
           ← Previous
         </button>
-        <h3 className="text-xl font-semibold text-gray-800">
+        <h4 className="text-base font-semibold text-gray-800">
           {viewMode === 'month'
             ? `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`
             : `Week of ${monthNames[weekDays[0]?.getMonth() ?? 0]} ${weekDays[0]?.getDate() ?? 1}`}
-        </h3>
+        </h4>
         <button
           onClick={viewMode === 'month' ? nextMonth : nextWeek}
-          className="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors"
+          className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors text-sm"
         >
           Next →
         </button>
@@ -190,18 +184,18 @@ function Calendar() {
 
       {/* Month View */}
       {viewMode === 'month' && (
-        <div className="bg-white rounded-lg p-4 border border-gray-200">
+        <div className="bg-white rounded-lg p-3 border border-gray-200">
           {/* Day names header */}
-          <div className="grid grid-cols-7 gap-2 mb-2">
+          <div className="grid grid-cols-7 gap-1 mb-1">
             {dayNames.map(day => (
-              <div key={day} className="text-center font-semibold text-gray-600 text-sm py-2">
+              <div key={day} className="text-center font-semibold text-gray-600 text-xs py-1">
                 {day}
               </div>
             ))}
           </div>
 
           {/* Calendar grid */}
-          <div className="grid grid-cols-7 gap-2">
+          <div className="grid grid-cols-7 gap-1">
             {monthDays.map((day, index) => {
               if (day === null) {
                 return <div key={`empty-${index}`} className="aspect-square" />;
@@ -235,8 +229,8 @@ function Calendar() {
 
       {/* Week View */}
       {viewMode === 'week' && (
-        <div className="bg-white rounded-lg p-4 border border-gray-200">
-          <div className="grid grid-cols-7 gap-3">
+        <div className="bg-white rounded-lg p-3 border border-gray-200">
+          <div className="grid grid-cols-7 gap-2">
             {weekDays.map(date => {
               const practiceCount = getPracticeCountForDate(date);
               const colorClass = getColorIntensity(practiceCount);
@@ -266,23 +260,22 @@ function Calendar() {
       )}
 
       {/* Legend */}
-      <div className="mt-6 flex items-center justify-center gap-4 text-sm text-gray-600">
+      <div className="mt-3 flex items-center justify-center gap-3 text-xs text-gray-600">
         <span>Less</span>
         <div className="flex gap-1">
-          <div className="w-6 h-6 bg-gray-100 rounded"></div>
-          <div className="w-6 h-6 bg-green-200 rounded"></div>
-          <div className="w-6 h-6 bg-green-400 rounded"></div>
-          <div className="w-6 h-6 bg-green-600 rounded"></div>
-          <div className="w-6 h-6 bg-green-800 rounded"></div>
+          <div className="w-4 h-4 bg-gray-100 rounded"></div>
+          <div className="w-4 h-4 bg-green-200 rounded"></div>
+          <div className="w-4 h-4 bg-green-400 rounded"></div>
+          <div className="w-4 h-4 bg-green-600 rounded"></div>
+          <div className="w-4 h-4 bg-green-800 rounded"></div>
         </div>
         <span>More</span>
       </div>
 
       {dailyPractice.length === 0 && (
-        <div className="text-center py-8 mt-4">
-          <div className="text-6xl mb-4">📅</div>
-          <h3 className="text-xl font-semibold text-gray-800 mb-2">No practice data yet</h3>
-          <p className="text-gray-600">Start practicing to build your streak!</p>
+        <div className="text-center py-6 mt-3">
+          <div className="text-4xl mb-2">📅</div>
+          <p className="text-sm text-gray-600">Start practicing to build your streak!</p>
         </div>
       )}
     </div>

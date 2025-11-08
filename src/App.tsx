@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import CharacterSelector from './components/CharacterSelector';
 import PromptCard from './components/PromptCard';
 import Statistics from './components/Statistics';
-import Calendar from './components/Calendar';
 import { hiraganaData, getRandomCharacter } from './data/hiragana';
 import { saveAttempt } from './utils/progressTracker';
 import type { HiraganaCharacter, ViewType } from './types';
@@ -81,8 +80,6 @@ function App() {
         } else if (view === 'practice') {
           setView('stats');
         } else if (view === 'stats') {
-          setView('calendar');
-        } else if (view === 'calendar') {
           setView('selector');
         }
         return;
@@ -141,16 +138,6 @@ function App() {
           >
             Statistics
           </button>
-          <button
-            onClick={() => setView('calendar')}
-            className={`px-6 py-2 rounded-lg font-medium transition-all ${
-              view === 'calendar'
-                ? 'bg-indigo-600 text-white shadow-lg'
-                : 'bg-white text-indigo-600 hover:bg-indigo-50'
-            }`}
-          >
-            Calendar
-          </button>
         </div>
 
         {/* Main Content */}
@@ -168,8 +155,6 @@ function App() {
           )}
 
           {view === 'stats' && <Statistics />}
-
-          {view === 'calendar' && <Calendar />}
         </div>
 
         {/* Footer */}

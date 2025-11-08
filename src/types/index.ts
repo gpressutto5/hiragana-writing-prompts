@@ -41,6 +41,11 @@ export interface HiraganaCharacter {
   row: HiraganaRowId;
 }
 
+// Stroke order types
+export interface StrokeOrderData {
+  [characterId: string]: string; // Character ID to SVG path mapping
+}
+
 export interface HiraganaGroup {
   id: HiraganaGroupId;
   name: string;

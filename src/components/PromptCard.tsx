@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { PromptCardProps } from '../types';
+import StrokeOrderDiagram from './StrokeOrderDiagram';
 
 function PromptCard({ character, onAnswer, onBack }: PromptCardProps) {
   const [revealed, setRevealed] = useState(false);
@@ -101,6 +102,9 @@ function PromptCard({ character, onAnswer, onBack }: PromptCardProps) {
               <div className="text-8xl font-bold text-green-900">{character.hiragana}</div>
               <div className="text-lg text-gray-600 mt-4">{character.romaji}</div>
             </div>
+
+            {/* Stroke Order Diagram */}
+            <StrokeOrderDiagram character={character} />
 
             {/* Self-assessment buttons */}
             <div className="text-center mb-8">

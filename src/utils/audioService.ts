@@ -1,9 +1,8 @@
 /**
  * Audio service for playing hiragana pronunciation
- * Uses HTML5 Audio API with Google Translate TTS for Japanese pronunciation
+ * Uses Web Speech API for native browser-based Japanese pronunciation
  */
 
-const AUDIO_CACHE_KEY = 'hiragana_audio_cache';
 const AUDIO_SETTINGS_KEY = 'hiragana_audio_settings';
 
 export interface AudioSettings {
@@ -37,35 +36,78 @@ export const saveAudioSettings = (settings: AudioSettings): void => {
 };
 
 /**
- * Generate audio URL for a hiragana character
- * Uses Google Translate TTS API for Japanese pronunciation
+ * Get Japanese voice from available voices
+ * Returns the best available Japanese voice
  */
-const getAudioUrl = (hiragana: string): string => {
-  const encodedText = encodeURIComponent(hiragana);
-  return `https://translate.google.com/translate_tts?ie=UTF-8&tl=ja&client=tw-ob&q=${encodedText}`;
+const getJapaneseVoice = (): SpeechSynthesisVoice | null => {
+  const voices = window.speechSynthesis.getVoices();
+
+  // Prefer Japanese voices in this order
+  const preferredVoices = [
+    'ja-JP', // Generic Japanese
+    'ja_JP', // Alternative format
+  ];
+
+  for (const preferred of preferredVoices) {
+    const voice = voices.find(v => v.lang.startsWith(preferred));
+    if (voice) return voice;
+  }
+
+  // Fallback to any voice containing 'ja'
+  return voices.find(v => v.lang.toLowerCase().includes('ja')) || null;
 };
 
 /**
  * Play pronunciation audio for a hiragana character
+ * Uses Web Speech API for native browser TTS
  * Returns a promise that resolves when audio finishes playing or rejects on error
  */
 export const playPronunciation = (hiragana: string): Promise<void> => {
   return new Promise((resolve, reject) => {
     try {
-      const audio = new Audio(getAudioUrl(hiragana));
+      // Check if Speech Synthesis is supported
+      if (!window.speechSynthesis) {
+        reject(new Error('Speech synthesis not supported in this browser'));
+        return;
+      }
 
-      audio.addEventListener('ended', () => resolve());
-      audio.addEventListener('error', error => {
-        console.error('Error playing audio:', error);
-        reject(new Error('Failed to play audio'));
+      // Cancel any ongoing speech
+      window.speechSynthesis.cancel();
+
+      const utterance = new SpeechSynthesisUtterance(hiragana);
+      utterance.lang = 'ja-JP';
+      utterance.rate = 0.8; // Slightly slower for learning
+
+      // Set Japanese voice if available
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length === 0) {
+        // Voices not loaded yet, wait for them
+        window.speechSynthesis.addEventListener(
+          'voiceschanged',
+          () => {
+            const voice = getJapaneseVoice();
+            if (voice) {
+              utterance.voice = voice;
+            }
+          },
+          { once: true }
+        );
+      } else {
+        const voice = getJapaneseVoice();
+        if (voice) {
+          utterance.voice = voice;
+        }
+      }
+
+      utterance.addEventListener('end', () => resolve());
+      utterance.addEventListener('error', event => {
+        console.error('Error playing audio:', event);
+        reject(new Error(`Failed to play audio: ${event.error}`));
       });
 
-      audio.play().catch(error => {
-        console.error('Error starting playback:', error);
-        reject(error);
-      });
+      window.speechSynthesis.speak(utterance);
     } catch (error) {
-      console.error('Error creating audio:', error);
+      console.error('Error creating speech:', error);
       reject(error);
     }
   });
@@ -73,12 +115,28 @@ export const playPronunciation = (hiragana: string): Promise<void> => {
 
 /**
  * Preload audio for a character (for better performance)
- * Returns true if preload was successful, false otherwise
+ * For Web Speech API, this ensures voices are loaded
+ * Returns true if voices are available, false otherwise
  */
 export const preloadAudio = (hiragana: string): boolean => {
   try {
-    const audio = new Audio(getAudioUrl(hiragana));
-    audio.preload = 'auto';
+    if (!window.speechSynthesis) {
+      return false;
+    }
+
+    // Trigger voice loading if not already loaded
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length === 0) {
+      // Voices will load asynchronously
+      window.speechSynthesis.addEventListener(
+        'voiceschanged',
+        () => {
+          // Voices now loaded
+        },
+        { once: true }
+      );
+    }
+
     return true;
   } catch (error) {
     console.error('Error preloading audio:', error);

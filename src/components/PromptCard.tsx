@@ -26,8 +26,9 @@ function PromptCard({ character, onAnswer, onBack }: PromptCardProps) {
   // Auto-play audio when revealed if enabled
   useEffect(() => {
     if (revealed && autoPlay) {
-      handlePlayAudio();
+      void handlePlayAudio();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [revealed, autoPlay]);
 
   const handleReveal = () => {
@@ -80,7 +81,7 @@ function PromptCard({ character, onAnswer, onBack }: PromptCardProps) {
         // P or A: Play audio
         if (key === 'p' || key === 'a') {
           e.preventDefault();
-          handlePlayAudio();
+          void handlePlayAudio();
           return;
         }
 
@@ -102,7 +103,7 @@ function PromptCard({ character, onAnswer, onBack }: PromptCardProps) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [revealed]);
+  }, [revealed, handleAnswer]);
 
   return (
     <div className="flex flex-col items-center">

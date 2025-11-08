@@ -32,31 +32,17 @@ function PromptCard({ character, onAnswer, onBack }: PromptCardProps) {
 
       // When revealed, handle answer shortcuts
       if (revealed) {
-        // Again: 1 or X
-        if (key === '1' || key === 'x') {
+        // Incorrect: X
+        if (key === 'x') {
           e.preventDefault();
           handleAnswer(0);
           return;
         }
 
-        // Hard: 2 or H
-        if (key === '2' || key === 'h') {
-          e.preventDefault();
-          handleAnswer(2);
-          return;
-        }
-
-        // Good: 3, Space, or Enter
-        if (key === '3' || key === ' ' || key === 'enter') {
+        // Correct: Space, Enter, or checkmark
+        if (key === ' ' || key === 'enter') {
           e.preventDefault();
           handleAnswer(3);
-          return;
-        }
-
-        // Easy: 4 or E
-        if (key === '4' || key === 'e') {
-          e.preventDefault();
-          handleAnswer(4);
           return;
         }
       }
@@ -116,46 +102,28 @@ function PromptCard({ character, onAnswer, onBack }: PromptCardProps) {
               <div className="text-lg text-gray-600 mt-4">{character.romaji}</div>
             </div>
 
-            {/* Self-assessment buttons with difficulty rating */}
+            {/* Self-assessment buttons */}
             <div className="text-center mb-8">
               <p className="text-gray-600 mb-4 font-medium h-12 flex items-center justify-center">
-                How well did you remember it?
+                Did you write it correctly?
               </p>
-              <div className="grid grid-cols-2 gap-3 max-w-md mx-auto">
+              <div className="flex gap-4 justify-center">
                 <button
                   onClick={() => handleAnswer(0)}
-                  className="px-6 py-3 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors"
+                  className="flex-1 max-w-xs px-8 py-4 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors text-xl"
                 >
-                  Again
-                  <div className="text-xs opacity-90">Completely forgot</div>
-                </button>
-                <button
-                  onClick={() => handleAnswer(2)}
-                  className="px-6 py-3 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition-colors"
-                >
-                  Hard
-                  <div className="text-xs opacity-90">Difficult recall</div>
+                  ✗ Incorrect
                 </button>
                 <button
                   onClick={() => handleAnswer(3)}
-                  className="px-6 py-3 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors"
+                  className="flex-1 max-w-xs px-8 py-4 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors text-xl"
                 >
-                  Good
-                  <div className="text-xs opacity-90">Correct with effort</div>
-                </button>
-                <button
-                  onClick={() => handleAnswer(4)}
-                  className="px-6 py-3 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors"
-                >
-                  Easy
-                  <div className="text-xs opacity-90">Perfect recall</div>
+                  ✓ Correct
                 </button>
               </div>
               <p className="text-sm text-gray-500 mt-3">
-                Keyboard: <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">1/X</kbd> Again,{' '}
-                <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">2/H</kbd> Hard,{' '}
-                <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">3/Space</kbd> Good,{' '}
-                <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">4/E</kbd> Easy
+                Keyboard: <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">X</kbd> Incorrect,{' '}
+                <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">Space/Enter</kbd> Correct
               </p>
             </div>
           </>

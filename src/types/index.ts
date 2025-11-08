@@ -82,6 +82,18 @@ export interface RecentAttempt extends AttemptHistory {
   characterId: string;
 }
 
+// Calendar and streak types
+export interface DailyPracticeData {
+  date: string; // ISO date string (YYYY-MM-DD)
+  attemptCount: number;
+}
+
+export interface StreakData {
+  currentStreak: number;
+  longestStreak: number;
+  lastPracticeDate: string | null;
+}
+
 // App state types
 export type ViewType = 'selector' | 'practice' | 'stats';
 

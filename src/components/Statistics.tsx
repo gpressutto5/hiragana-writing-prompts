@@ -5,6 +5,7 @@ import {
   resetProgress,
 } from '../utils/progressTracker';
 import { hiraganaData } from '../data/hiragana';
+import Calendar from './Calendar';
 import type { HiraganaCharacter, CharacterStats } from '../types';
 
 interface CharacterWithStats extends HiraganaCharacter {
@@ -65,6 +66,11 @@ function Statistics() {
           <div className="text-3xl font-bold text-indigo-900">{overallStats.charactersStudied}</div>
           <div className="text-sm text-indigo-700 mt-1">Characters Studied</div>
         </div>
+      </div>
+
+      {/* Calendar */}
+      <div className="mb-8">
+        <Calendar />
       </div>
 
       {/* Per-character statistics */}

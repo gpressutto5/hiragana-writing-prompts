@@ -21,7 +21,7 @@ export const getAudioSettings = (): AudioSettings => {
   } catch (error) {
     console.error('Error reading audio settings:', error);
   }
-  return { autoPlay: false };
+  return { autoPlay: true };
 };
 
 /**

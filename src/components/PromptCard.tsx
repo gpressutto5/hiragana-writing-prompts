@@ -39,7 +39,7 @@ function PromptCard({ character, onAnswer, onBack }: PromptCardProps) {
           return;
         }
 
-        // Correct: Space, Enter, or checkmark
+        // Correct: Space, Enter
         if (key === ' ' || key === 'enter') {
           e.preventDefault();
           handleAnswer(3);
@@ -112,13 +112,13 @@ function PromptCard({ character, onAnswer, onBack }: PromptCardProps) {
                   onClick={() => handleAnswer(0)}
                   className="flex-1 max-w-xs px-8 py-4 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors text-xl"
                 >
-                  ✗ Incorrect
+                  ✕ Incorrect
                 </button>
                 <button
                   onClick={() => handleAnswer(3)}
                   className="flex-1 max-w-xs px-8 py-4 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors text-xl"
                 >
-                  ✓ Correct
+                  ○ Correct
                 </button>
               </div>
               <p className="text-sm text-gray-500 mt-3">

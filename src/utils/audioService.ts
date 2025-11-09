@@ -118,7 +118,7 @@ export const playPronunciation = (hiragana: string): Promise<void> => {
  * For Web Speech API, this ensures voices are loaded
  * Returns true if voices are available, false otherwise
  */
-export const preloadAudio = (hiragana: string): boolean => {
+export const preloadAudio = (): boolean => {
   try {
     if (!window.speechSynthesis) {
       return false;

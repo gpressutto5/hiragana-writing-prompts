@@ -12,6 +12,7 @@ function PromptCard({ character, onAnswer, onBack }: PromptCardProps) {
   const [autoPlay, setAutoPlay] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const currentPlayingPromise = useRef<Promise<void> | null>(null);
+  const shouldAutoplayNextCharacter = useRef(false);
 
   // Load audio settings on mount
   useEffect(() => {
@@ -21,22 +22,38 @@ function PromptCard({ character, onAnswer, onBack }: PromptCardProps) {
 
   // Preload audio for current character
   useEffect(() => {
-    preloadAudio(character.hiragana);
+    preloadAudio();
   }, [character.hiragana]);
 
-  // Auto-play audio when revealed if enabled
+  // Auto-play audio when new character appears (prompt stage only)
+  // This runs after handleAnswer sets the flag and parent updates character
+  // Browser allows it because it's triggered by user interaction chain
   useEffect(() => {
-    if (autoPlay) {
-      void handlePlayAudio();
+    if (!revealed && autoPlay && shouldAutoplayNextCharacter.current) {
+      shouldAutoplayNextCharacter.current = false;
+      // Use setTimeout to ensure it runs after render completes
+      // This keeps it within the user interaction gesture window
+      setTimeout(() => {
+        void handlePlayAudio();
+      }, 0);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [revealed, autoPlay]);
+  }, [character.hiragana, revealed, autoPlay]);
 
   const handleReveal = () => {
     setRevealed(true);
+    // Auto-play audio when revealed if enabled
+    // Must be called directly in user interaction handler to avoid browser blocking
+    if (autoPlay) {
+      void handlePlayAudio();
+    }
   };
 
   const handleAnswer = (difficulty: number) => {
+    // Mark that we should autoplay when the next character loads
+    if (autoPlay) {
+      shouldAutoplayNextCharacter.current = true;
+    }
     onAnswer(difficulty);
     setRevealed(false);
   };

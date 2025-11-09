@@ -173,13 +173,13 @@ hiragana-writing-prompts/
 
 ## Future Enhancement Ideas
 
-- [ ] Keyboard shortcuts for faster interaction
-- [ ] Add calendar view for tracking daily practice streaks
+- [x] Keyboard shortcuts for faster interaction
+- [x] Add calendar view for tracking daily practice streaks
 - [ ] Stroke order diagrams for visual reference
-- [ ] Spaced repetition algorithm for optimal practice scheduling
+- [x] Spaced repetition algorithm for optimal practice scheduling
 - [ ] Practice sessions with time limits
 - [ ] Support for katakana characters
-- [ ] Audio pronunciation for each character
+- [x] Audio pronunciation for each character
 - [ ] Combination characters (きゃ, きゅ, きょ, etc.)
 - [ ] Export/import progress data
 - [ ] Dark mode toggle

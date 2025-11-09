@@ -4,7 +4,7 @@ import { getDailyPracticeHistory, getStreakData } from '../utils/progressTracker
 type ViewMode = 'month' | 'week';
 
 function Calendar() {
-  const [viewMode, setViewMode] = useState<ViewMode>('month');
+  const [viewMode, setViewMode] = useState<ViewMode>('week');
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const streakData = getStreakData();

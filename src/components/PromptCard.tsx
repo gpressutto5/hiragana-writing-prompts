@@ -35,8 +35,8 @@ function PromptCard({ character, onAnswer, onBack }: PromptCardProps) {
     setRevealed(true);
   };
 
-  const handleAnswer = (isCorrect: boolean) => {
-    onAnswer(isCorrect);
+  const handleAnswer = (difficulty: number) => {
+    onAnswer(difficulty);
     setRevealed(false);
   };
 
@@ -69,8 +69,8 @@ function PromptCard({ character, onAnswer, onBack }: PromptCardProps) {
 
       const key = e.key.toLowerCase();
 
-      // P or A: Play audio (works on both stages)
-      if (key === 'p' || key === 'a') {
+      // P: Play audio (works on both stages)
+      if (key === 'p') {
         e.preventDefault();
         void handlePlayAudio();
         return;
@@ -85,17 +85,17 @@ function PromptCard({ character, onAnswer, onBack }: PromptCardProps) {
 
       // When revealed, handle answer shortcuts
       if (revealed) {
-        // Correct answers: O, Y, or Right arrow
-        if (key === 'o' || key === 'y' || key === 'arrowright') {
+        // Incorrect: X
+        if (key === 'x') {
           e.preventDefault();
-          handleAnswer(true);
+          handleAnswer(0);
           return;
         }
 
-        // Incorrect answers: X, N, or Left arrow
-        if (key === 'x' || key === 'n' || key === 'arrowleft') {
+        // Correct: Space, Enter
+        if (key === ' ' || key === 'enter') {
           e.preventDefault();
-          handleAnswer(false);
+          handleAnswer(3);
           return;
         }
       }
@@ -192,8 +192,7 @@ function PromptCard({ character, onAnswer, onBack }: PromptCardProps) {
                 Reveal Answer
               </button>
               <p className="text-sm text-gray-500 mt-3">
-                Keyboard: <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">P</kbd>/
-                <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">A</kbd> play audio •{' '}
+                Keyboard: <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">P</kbd> play audio •{' '}
                 <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">Space</kbd> or{' '}
                 <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">Enter</kbd> reveal
               </p>
@@ -270,27 +269,22 @@ function PromptCard({ character, onAnswer, onBack }: PromptCardProps) {
               </p>
               <div className="flex gap-4 justify-center">
                 <button
-                  onClick={() => handleAnswer(false)}
-                  className="px-8 py-3 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors"
+                  onClick={() => handleAnswer(0)}
+                  className="flex-1 max-w-xs px-8 py-4 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors text-xl"
                 >
                   ✕ Incorrect
                 </button>
                 <button
-                  onClick={() => handleAnswer(true)}
-                  className="px-8 py-3 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors"
+                  onClick={() => handleAnswer(3)}
+                  className="flex-1 max-w-xs px-8 py-4 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors text-xl"
                 >
                   ○ Correct
                 </button>
               </div>
               <p className="text-sm text-gray-500 mt-3">
-                Keyboard: <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">P</kbd>/
-                <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">A</kbd> play audio •{' '}
-                <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">X</kbd>/
-                <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">N</kbd>/
-                <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">←</kbd> incorrect •{' '}
-                <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">O</kbd>/
-                <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">Y</kbd>/
-                <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">→</kbd> correct
+                Keyboard: <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">P</kbd> play audio
+                • <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">X</kbd> Incorrect •{' '}
+                <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">Space/Enter</kbd> Correct
               </p>
             </div>
           </>

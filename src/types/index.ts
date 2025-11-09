@@ -51,6 +51,14 @@ export interface HiraganaGroup {
 export interface AttemptHistory {
   timestamp: string;
   correct: boolean;
+  difficulty?: number; // 0 = again, 2 = hard, 3 = good, 4 = easy
+}
+
+export interface SRSData {
+  easinessFactor: number; // SM-2 easiness factor (1.3 - 2.5+)
+  interval: number; // Days until next review
+  repetitions: number; // Consecutive successful reviews
+  nextReview: string | null; // ISO timestamp of next review
 }
 
 export interface CharacterProgress {
@@ -58,6 +66,7 @@ export interface CharacterProgress {
   correct: number;
   lastAttempt: string | null;
   history: AttemptHistory[];
+  srs: SRSData;
 }
 
 export interface ProgressData {
@@ -105,7 +114,7 @@ export interface CharacterSelectorProps {
 
 export interface PromptCardProps {
   character: HiraganaCharacter;
-  onAnswer: (isCorrect: boolean) => void;
+  onAnswer: (difficulty: number) => void; // 0 = again, 2 = hard, 3 = good, 4 = easy
   onBack: () => void;
 }
 

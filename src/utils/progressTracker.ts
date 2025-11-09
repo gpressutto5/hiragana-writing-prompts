@@ -5,24 +5,104 @@ import type {
   RecentAttempt,
   DailyPracticeData,
   StreakData,
+  SRSData,
+  HiraganaCharacter,
 } from '../types';
 
 const STORAGE_KEY = 'hiragana_progress';
 const DAILY_PRACTICE_KEY = 'hiragana_daily_practice';
 
+// SRS Algorithm Constants (SM-2 based)
+const MIN_EASINESS_FACTOR = 1.3;
+const INITIAL_EASINESS_FACTOR = 2.5;
+const INITIAL_INTERVAL = 1; // days
+
+// Create default SRS data for new characters
+const createDefaultSRS = (): SRSData => ({
+  easinessFactor: INITIAL_EASINESS_FACTOR,
+  interval: INITIAL_INTERVAL,
+  repetitions: 0,
+  nextReview: null,
+});
+
 // Get all progress data from localStorage
 export const getProgress = (): ProgressData => {
   try {
     const data = localStorage.getItem(STORAGE_KEY);
-    return data ? (JSON.parse(data) as ProgressData) : {};
+    if (!data) return {};
+
+    const progress = JSON.parse(data) as ProgressData;
+
+    // Migrate old data without SRS to include SRS data
+    Object.keys(progress).forEach(charId => {
+      const charProgress = progress[charId];
+      if (charProgress && !charProgress.srs) {
+        charProgress.srs = createDefaultSRS();
+      }
+    });
+
+    return progress;
   } catch (error) {
     console.error('Error reading progress:', error);
     return {};
   }
 };
 
-// Save progress for a specific character
-export const saveAttempt = (characterId: string, isCorrect: boolean): ProgressData => {
+// Calculate next SRS values based on difficulty rating
+// difficulty: 0 = again, 2 = hard, 3 = good, 4 = easy
+const calculateSRS = (currentSRS: SRSData, difficulty: number): SRSData => {
+  const { easinessFactor, interval, repetitions } = currentSRS;
+
+  // Calculate new easiness factor using SM-2 formula
+  // EF' = EF + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02))
+  const quality = difficulty;
+  let newEF = easinessFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
+  newEF = Math.max(MIN_EASINESS_FACTOR, newEF);
+
+  let newInterval: number;
+  let newRepetitions: number;
+
+  if (difficulty < 3) {
+    // Failed - reset repetitions and interval
+    newRepetitions = 0;
+    newInterval = 1;
+  } else {
+    // Passed - increase interval
+    newRepetitions = repetitions + 1;
+
+    if (newRepetitions === 1) {
+      newInterval = 1;
+    } else if (newRepetitions === 2) {
+      newInterval = 6;
+    } else {
+      newInterval = Math.round(interval * newEF);
+    }
+
+    // Adjust interval based on difficulty
+    if (difficulty === 2) {
+      // Hard: multiply by 1.2
+      newInterval = Math.round(newInterval * 1.2);
+    } else if (difficulty === 4) {
+      // Easy: multiply by easiness factor again
+      newInterval = Math.round(newInterval * newEF);
+    }
+  }
+
+  // Calculate next review date
+  const nextReview = new Date();
+  nextReview.setDate(nextReview.getDate() + newInterval);
+
+  return {
+    easinessFactor: newEF,
+    interval: newInterval,
+    repetitions: newRepetitions,
+    nextReview: nextReview.toISOString(),
+  };
+};
+
+// Save progress for a specific character with difficulty rating
+// difficulty: 0 = again, 2 = hard, 3 = good, 4 = easy
+export const saveAttempt = (characterId: string, difficulty: number): ProgressData => {
   try {
     const progress = getProgress();
 
@@ -32,6 +112,7 @@ export const saveAttempt = (characterId: string, isCorrect: boolean): ProgressDa
         correct: 0,
         lastAttempt: null,
         history: [],
+        srs: createDefaultSRS(),
       };
     }
 
@@ -39,6 +120,8 @@ export const saveAttempt = (characterId: string, isCorrect: boolean): ProgressDa
     if (!charProgress) {
       throw new Error(`Failed to initialize progress for character: ${characterId}`);
     }
+
+    const isCorrect = difficulty >= 3; // Good or Easy considered correct
 
     charProgress.attempts += 1;
     if (isCorrect) {
@@ -48,7 +131,11 @@ export const saveAttempt = (characterId: string, isCorrect: boolean): ProgressDa
     charProgress.history.push({
       timestamp: new Date().toISOString(),
       correct: isCorrect,
+      difficulty,
     });
+
+    // Update SRS data
+    charProgress.srs = calculateSRS(charProgress.srs, difficulty);
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
 
@@ -253,4 +340,38 @@ export const getStreakData = (): StreakData => {
     longestStreak,
     lastPracticeDate,
   };
+};
+
+// Get characters due for review based on SRS
+export const getCharactersDueForReview = (
+  allCharacters: HiraganaCharacter[]
+): HiraganaCharacter[] => {
+  const progress = getProgress();
+  const now = new Date();
+
+  const charactersByPriority: Array<{ char: HiraganaCharacter; priority: number }> = [];
+
+  allCharacters.forEach(char => {
+    const charProgress = progress[char.id];
+
+    if (!charProgress || !charProgress.srs.nextReview) {
+      // Never studied - high priority
+      charactersByPriority.push({ char, priority: 1 });
+    } else {
+      const nextReview = new Date(charProgress.srs.nextReview);
+      const dueIn = nextReview.getTime() - now.getTime();
+
+      if (dueIn <= 0) {
+        // Overdue - priority based on how overdue (more overdue = higher priority)
+        const daysOverdue = Math.abs(dueIn) / (1000 * 60 * 60 * 24);
+        charactersByPriority.push({ char, priority: 2 + daysOverdue });
+      }
+      // Not due yet - don't include
+    }
+  });
+
+  // Sort by priority (descending - higher priority first)
+  charactersByPriority.sort((a, b) => b.priority - a.priority);
+
+  return charactersByPriority.map(item => item.char);
 };

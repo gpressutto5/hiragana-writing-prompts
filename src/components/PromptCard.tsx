@@ -25,7 +25,7 @@ function PromptCard({ character, onAnswer, onBack }: PromptCardProps) {
 
   // Auto-play audio when revealed if enabled
   useEffect(() => {
-    if (revealed && autoPlay) {
+    if (autoPlay) {
       void handlePlayAudio();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -192,8 +192,8 @@ function PromptCard({ character, onAnswer, onBack }: PromptCardProps) {
                 Reveal Answer
               </button>
               <p className="text-sm text-gray-500 mt-3">
-                Keyboard: <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">P</kbd> play audio •{' '}
-                <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">Space</kbd> or{' '}
+                Keyboard: <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">P</kbd> play audio
+                • <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">Space</kbd> or{' '}
                 <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">Enter</kbd> reveal
               </p>
             </div>

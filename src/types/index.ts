@@ -14,7 +14,8 @@ export type HiraganaGroupId =
   | 'z-row'
   | 'd-row'
   | 'b-row'
-  | 'p-row';
+  | 'p-row'
+  | 'yoon';
 
 export type HiraganaRowId =
   | 'a'
@@ -31,7 +32,8 @@ export type HiraganaRowId =
   | 'za'
   | 'da'
   | 'ba'
-  | 'pa';
+  | 'pa'
+  | 'yoon';
 
 export interface HiraganaCharacter {
   id: string;

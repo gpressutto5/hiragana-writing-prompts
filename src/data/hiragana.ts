@@ -101,6 +101,62 @@ export const hiraganaData: HiraganaCharacter[] = [
   { id: 'pu', hiragana: 'ぷ', romaji: 'pu', group: 'p-row', row: 'pa' },
   { id: 'pe', hiragana: 'ぺ', romaji: 'pe', group: 'p-row', row: 'pa' },
   { id: 'po', hiragana: 'ぽ', romaji: 'po', group: 'p-row', row: 'pa' },
+
+  // Yōon - Combination characters (拗音)
+  // K-row combinations
+  { id: 'kya', hiragana: 'きゃ', romaji: 'kya', group: 'yoon', row: 'yoon' },
+  { id: 'kyu', hiragana: 'きゅ', romaji: 'kyu', group: 'yoon', row: 'yoon' },
+  { id: 'kyo', hiragana: 'きょ', romaji: 'kyo', group: 'yoon', row: 'yoon' },
+
+  // S-row combinations
+  { id: 'sha', hiragana: 'しゃ', romaji: 'sha', group: 'yoon', row: 'yoon' },
+  { id: 'shu', hiragana: 'しゅ', romaji: 'shu', group: 'yoon', row: 'yoon' },
+  { id: 'sho', hiragana: 'しょ', romaji: 'sho', group: 'yoon', row: 'yoon' },
+
+  // T-row combinations
+  { id: 'cha', hiragana: 'ちゃ', romaji: 'cha', group: 'yoon', row: 'yoon' },
+  { id: 'chu', hiragana: 'ちゅ', romaji: 'chu', group: 'yoon', row: 'yoon' },
+  { id: 'cho', hiragana: 'ちょ', romaji: 'cho', group: 'yoon', row: 'yoon' },
+
+  // N-row combinations
+  { id: 'nya', hiragana: 'にゃ', romaji: 'nya', group: 'yoon', row: 'yoon' },
+  { id: 'nyu', hiragana: 'にゅ', romaji: 'nyu', group: 'yoon', row: 'yoon' },
+  { id: 'nyo', hiragana: 'にょ', romaji: 'nyo', group: 'yoon', row: 'yoon' },
+
+  // H-row combinations
+  { id: 'hya', hiragana: 'ひゃ', romaji: 'hya', group: 'yoon', row: 'yoon' },
+  { id: 'hyu', hiragana: 'ひゅ', romaji: 'hyu', group: 'yoon', row: 'yoon' },
+  { id: 'hyo', hiragana: 'ひょ', romaji: 'hyo', group: 'yoon', row: 'yoon' },
+
+  // M-row combinations
+  { id: 'mya', hiragana: 'みゃ', romaji: 'mya', group: 'yoon', row: 'yoon' },
+  { id: 'myu', hiragana: 'みゅ', romaji: 'myu', group: 'yoon', row: 'yoon' },
+  { id: 'myo', hiragana: 'みょ', romaji: 'myo', group: 'yoon', row: 'yoon' },
+
+  // R-row combinations
+  { id: 'rya', hiragana: 'りゃ', romaji: 'rya', group: 'yoon', row: 'yoon' },
+  { id: 'ryu', hiragana: 'りゅ', romaji: 'ryu', group: 'yoon', row: 'yoon' },
+  { id: 'ryo', hiragana: 'りょ', romaji: 'ryo', group: 'yoon', row: 'yoon' },
+
+  // G-row combinations (dakuten)
+  { id: 'gya', hiragana: 'ぎゃ', romaji: 'gya', group: 'yoon', row: 'yoon' },
+  { id: 'gyu', hiragana: 'ぎゅ', romaji: 'gyu', group: 'yoon', row: 'yoon' },
+  { id: 'gyo', hiragana: 'ぎょ', romaji: 'gyo', group: 'yoon', row: 'yoon' },
+
+  // Z-row combinations (dakuten)
+  { id: 'ja', hiragana: 'じゃ', romaji: 'ja', group: 'yoon', row: 'yoon' },
+  { id: 'ju', hiragana: 'じゅ', romaji: 'ju', group: 'yoon', row: 'yoon' },
+  { id: 'jo', hiragana: 'じょ', romaji: 'jo', group: 'yoon', row: 'yoon' },
+
+  // B-row combinations (dakuten)
+  { id: 'bya', hiragana: 'びゃ', romaji: 'bya', group: 'yoon', row: 'yoon' },
+  { id: 'byu', hiragana: 'びゅ', romaji: 'byu', group: 'yoon', row: 'yoon' },
+  { id: 'byo', hiragana: 'びょ', romaji: 'byo', group: 'yoon', row: 'yoon' },
+
+  // P-row combinations (handakuten)
+  { id: 'pya', hiragana: 'ぴゃ', romaji: 'pya', group: 'yoon', row: 'yoon' },
+  { id: 'pyu', hiragana: 'ぴゅ', romaji: 'pyu', group: 'yoon', row: 'yoon' },
+  { id: 'pyo', hiragana: 'ぴょ', romaji: 'pyo', group: 'yoon', row: 'yoon' },
 ];
 
 // Group definitions for UI organization
@@ -120,6 +176,7 @@ export const groups: HiraganaGroup[] = [
   { id: 'd-row', name: 'D Row (だ行)', label: 'da dji dzu de do' },
   { id: 'b-row', name: 'B Row (ば行)', label: 'ba bi bu be bo' },
   { id: 'p-row', name: 'P Row (ぱ行)', label: 'pa pi pu pe po' },
+  { id: 'yoon', name: 'Yōon (拗音)', label: 'kya sha cha nya hya mya rya gya ja bya pya' },
 ];
 
 // Helper function to get characters by group

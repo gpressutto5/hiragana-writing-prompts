@@ -1,8 +1,15 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { groups } from '../data/hiragana';
+import { wordsData } from '../data/words';
+import { canEnableWordMode, getAvailableWordCount } from '../utils/wordFilter';
 import type { CharacterSelectorProps, HiraganaGroupId } from '../types';
 
-function CharacterSelector({ onStart, allCharacters }: CharacterSelectorProps) {
+function CharacterSelector({
+  onStart,
+  allCharacters,
+  practiceMode,
+  setPracticeMode,
+}: CharacterSelectorProps) {
   const [selectedGroups, setSelectedGroups] = useState<Set<HiraganaGroupId>>(new Set());
   const [selectedCharIds, setSelectedCharIds] = useState<Set<string>>(new Set());
 
@@ -35,6 +42,25 @@ function CharacterSelector({ onStart, allCharacters }: CharacterSelectorProps) {
   const deselectAll = () => {
     setSelectedGroups(new Set());
     setSelectedCharIds(new Set());
+  };
+
+  // Compute word-related values
+  const wordModeEnabled = useMemo(
+    () => canEnableWordMode(selectedCharIds.size),
+    [selectedCharIds.size]
+  );
+
+  const availableWordCount = useMemo(() => {
+    const selectedChars = allCharacters.filter(char => selectedCharIds.has(char.id));
+    return getAvailableWordCount(wordsData, selectedChars);
+  }, [selectedCharIds, allCharacters]);
+
+  // Automatically switch to characters mode if word modes become unavailable
+  const handleModeChange = (mode: typeof practiceMode) => {
+    if (!wordModeEnabled && (mode === 'words' || mode === 'both')) {
+      return; // Don't allow switching to word modes when disabled
+    }
+    setPracticeMode(mode);
   };
 
   const handleStart = () => {
@@ -116,6 +142,74 @@ function CharacterSelector({ onStart, allCharacters }: CharacterSelectorProps) {
         ))}
       </div>
 
+      {/* Practice Mode Selection */}
+      <div className="mb-6 p-4 bg-gray-50 rounded-lg border-2 border-gray-200">
+        <h3 className="font-semibold text-gray-800 mb-3">Practice Mode:</h3>
+        <div className="space-y-2">
+          <label className="flex items-center gap-3 cursor-pointer p-3 rounded hover:bg-gray-100 transition-colors">
+            <input
+              type="radio"
+              name="practiceMode"
+              checked={practiceMode === 'characters'}
+              onChange={() => handleModeChange('characters')}
+              className="w-4 h-4 text-indigo-600"
+            />
+            <div className="flex-1">
+              <span className="font-medium text-gray-800">Characters Only</span>
+              <p className="text-sm text-gray-500">Practice individual hiragana characters</p>
+            </div>
+          </label>
+
+          <label
+            className={`flex items-center gap-3 p-3 rounded transition-colors ${
+              wordModeEnabled ? 'cursor-pointer hover:bg-gray-100' : 'opacity-50 cursor-not-allowed'
+            }`}
+          >
+            <input
+              type="radio"
+              name="practiceMode"
+              checked={practiceMode === 'words'}
+              onChange={() => handleModeChange('words')}
+              disabled={!wordModeEnabled}
+              className="w-4 h-4 text-indigo-600"
+            />
+            <div className="flex-1">
+              <span className="font-medium text-gray-800">Words Only</span>
+              <p className="text-sm text-gray-500">
+                Practice complete words ({availableWordCount} available)
+              </p>
+              {!wordModeEnabled && (
+                <p className="text-xs text-amber-600 mt-1">Select at least 10 characters</p>
+              )}
+            </div>
+          </label>
+
+          <label
+            className={`flex items-center gap-3 p-3 rounded transition-colors ${
+              wordModeEnabled ? 'cursor-pointer hover:bg-gray-100' : 'opacity-50 cursor-not-allowed'
+            }`}
+          >
+            <input
+              type="radio"
+              name="practiceMode"
+              checked={practiceMode === 'both'}
+              onChange={() => handleModeChange('both')}
+              disabled={!wordModeEnabled}
+              className="w-4 h-4 text-indigo-600"
+            />
+            <div className="flex-1">
+              <span className="font-medium text-gray-800">Both</span>
+              <p className="text-sm text-gray-500">
+                Alternate between characters and words (50/50)
+              </p>
+              {!wordModeEnabled && (
+                <p className="text-xs text-amber-600 mt-1">Select at least 10 characters</p>
+              )}
+            </div>
+          </label>
+        </div>
+      </div>
+
       {/* Selected count and start button */}
       <div className="flex items-center justify-between">
         <div className="text-gray-600">
@@ -127,7 +221,7 @@ function CharacterSelector({ onStart, allCharacters }: CharacterSelectorProps) {
           disabled={selectedCharIds.size === 0}
           className="px-8 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Start Practice
+          Start Practice →
         </button>
       </div>
     </div>

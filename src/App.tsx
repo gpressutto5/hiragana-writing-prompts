@@ -1,10 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import CharacterSelector from './components/CharacterSelector';
 import PromptCard from './components/PromptCard';
 import Statistics from './components/Statistics';
 import { hiraganaData, getRandomCharacter } from './data/hiragana';
-import { saveAttempt, getCharactersDueForReview } from './utils/progressTracker';
-import type { HiraganaCharacter, ViewType } from './types';
+import { wordsData } from './data/words';
+import {
+  saveAttempt,
+  getCharactersDueForReview,
+  saveWordAttemptWithCharacters,
+} from './utils/progressTracker';
+import { filterAvailableWords } from './utils/wordFilter';
+import type { HiraganaCharacter, ViewType, PracticeMode, WordData } from './types';
 import './App.css';
 
 function App() {
@@ -12,6 +18,17 @@ function App() {
   const [selectedCharacters, setSelectedCharacters] = useState<HiraganaCharacter[]>([]);
   const [currentCharacter, setCurrentCharacter] = useState<HiraganaCharacter | null>(null);
   const [recentCharacters, setRecentCharacters] = useState<string[]>([]);
+  const [practiceMode, setPracticeMode] = useState<PracticeMode>('characters');
+
+  // Word practice state
+  const [currentWord, setCurrentWord] = useState<WordData | null>(null);
+  const [recentWords, setRecentWords] = useState<string[]>([]);
+
+  // Calculate available words based on selected characters
+  const availableWords = useMemo(
+    () => filterAvailableWords(wordsData, selectedCharacters),
+    [selectedCharacters]
+  );
 
   const startPractice = (characters: HiraganaCharacter[]) => {
     if (characters.length === 0) {
@@ -20,7 +37,20 @@ function App() {
     }
     setSelectedCharacters(characters);
     setView('practice');
-    nextCharacter(characters);
+
+    // Start with appropriate content based on practice mode
+    if (practiceMode === 'characters') {
+      nextCharacter(characters);
+    } else if (practiceMode === 'words') {
+      nextWord(filterAvailableWords(wordsData, characters));
+    } else {
+      // 'both' mode - 50/50 random
+      if (Math.random() < 0.5) {
+        nextCharacter(characters);
+      } else {
+        nextWord(filterAvailableWords(wordsData, characters));
+      }
+    }
   };
 
   const nextCharacter = (chars: HiraganaCharacter[] = selectedCharacters) => {
@@ -44,11 +74,35 @@ function App() {
     if (!randomChar) return;
 
     setCurrentCharacter(randomChar);
+    setCurrentWord(null); // Clear word when showing character
 
     // Keep track of recent characters (last 3)
     setRecentCharacters(prev => {
       const updated = [randomChar.id, ...prev];
       return updated.slice(0, Math.min(3, chars.length - 1));
+    });
+  };
+
+  const nextWord = (words: WordData[] = availableWords) => {
+    // Filter out recently shown words
+    const availableWordsFiltered = words.filter(word => !recentWords.includes(word.id));
+    const wordsToUse = availableWordsFiltered.length > 0 ? availableWordsFiltered : words;
+
+    if (wordsToUse.length === 0) return;
+
+    // Pick random word
+    const randomIndex = Math.floor(Math.random() * wordsToUse.length);
+    const randomWord = wordsToUse[randomIndex];
+
+    if (!randomWord) return;
+
+    setCurrentWord(randomWord);
+    setCurrentCharacter(null); // Clear character when showing word
+
+    // Keep track of recent words (last 3)
+    setRecentWords(prev => {
+      const updated = [randomWord.id, ...prev];
+      return updated.slice(0, Math.min(3, words.length - 1));
     });
   };
 
@@ -58,15 +112,42 @@ function App() {
     // Save the attempt with difficulty rating
     saveAttempt(currentCharacter.id, difficulty);
 
-    // Move to next character
-    nextCharacter();
+    // Move to next item based on practice mode
+    moveToNext();
+  };
+
+  const handleWordAnswer = (incorrectCharacterIds: string[]) => {
+    if (!currentWord) return;
+
+    // Save word attempt with character breakdown
+    saveWordAttemptWithCharacters(currentWord.id, currentWord.characters, incorrectCharacterIds);
+
+    // Move to next item based on practice mode
+    moveToNext();
+  };
+
+  const moveToNext = () => {
+    if (practiceMode === 'characters') {
+      nextCharacter();
+    } else if (practiceMode === 'words') {
+      nextWord();
+    } else {
+      // 'both' mode - 50/50 random
+      if (Math.random() < 0.5) {
+        nextCharacter();
+      } else {
+        nextWord();
+      }
+    }
   };
 
   const backToSelector = () => {
     setView('selector');
     setCurrentCharacter(null);
+    setCurrentWord(null);
     setSelectedCharacters([]);
     setRecentCharacters([]);
+    setRecentWords([]);
   };
 
   // Global keyboard shortcuts
@@ -99,14 +180,14 @@ function App() {
       // R: Reset/restart practice (only in practice mode)
       if (key === 'r' && view === 'practice' && selectedCharacters.length > 0) {
         e.preventDefault();
-        nextCharacter(selectedCharacters);
+        moveToNext();
         return;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [view, selectedCharacters, nextCharacter]);
+  }, [view, selectedCharacters, moveToNext]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -154,13 +235,28 @@ function App() {
         {/* Main Content */}
         <div className="bg-white rounded-2xl shadow-xl p-8">
           {view === 'selector' && (
-            <CharacterSelector onStart={startPractice} allCharacters={hiraganaData} />
+            <CharacterSelector
+              onStart={startPractice}
+              allCharacters={hiraganaData}
+              practiceMode={practiceMode}
+              setPracticeMode={setPracticeMode}
+            />
           )}
 
           {view === 'practice' && currentCharacter && (
             <PromptCard
+              type="character"
               character={currentCharacter}
               onAnswer={handleAnswer}
+              onBack={backToSelector}
+            />
+          )}
+
+          {view === 'practice' && currentWord && (
+            <PromptCard
+              type="word"
+              word={currentWord}
+              onAnswer={handleWordAnswer}
               onBack={backToSelector}
             />
           )}

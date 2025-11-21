@@ -49,11 +49,27 @@ export interface HiraganaGroup {
   label: string;
 }
 
+// Word practice types
+export type WordCategory = 'food' | 'greetings' | 'numbers' | 'animals' | 'common' | 'adjectives';
+
+export interface WordData {
+  id: string;
+  word: string;
+  romaji: string;
+  meaning: string;
+  characters: string[];
+  category: WordCategory;
+}
+
+export type PracticeMode = 'characters' | 'words' | 'both';
+
 // Progress tracking types
 export interface AttemptHistory {
   timestamp: string;
   correct: boolean;
   difficulty?: number; // 0 = again, 2 = hard, 3 = good, 4 = easy
+  source: 'character' | 'word';
+  wordId?: string;
 }
 
 export interface SRSData {
@@ -112,14 +128,48 @@ export type ViewType = 'selector' | 'practice' | 'stats';
 export interface CharacterSelectorProps {
   onStart: (characters: HiraganaCharacter[]) => void;
   allCharacters: HiraganaCharacter[];
+  practiceMode: PracticeMode;
+  setPracticeMode: (mode: PracticeMode) => void;
 }
 
-export interface PromptCardProps {
-  character: HiraganaCharacter;
-  onAnswer: (difficulty: number) => void; // 0 = again, 2 = hard, 3 = good, 4 = easy
-  onBack: () => void;
-}
+// Discriminated union for PromptCard props
+export type PromptCardProps =
+  | {
+      type: 'character';
+      character: HiraganaCharacter;
+      onAnswer: (difficulty: number) => void; // 0 = again, 2 = hard, 3 = good, 4 = easy
+      onBack: () => void;
+    }
+  | {
+      type: 'word';
+      word: WordData;
+      onAnswer: (incorrectCharacterIds: string[]) => void; // Empty array if all correct
+      onBack: () => void;
+    };
 
 export interface StatisticsProps {
   // Statistics component has no props, reads directly from progressTracker
+}
+
+// Word progress tracking types
+export interface WordProgress {
+  attempts: number;
+  correct: number;
+  lastAttempt: string | null;
+  characterBreakdown: {
+    [characterId: string]: {
+      correct: number;
+      incorrect: number;
+    };
+  };
+}
+
+export interface WordStats extends WordProgress {
+  successRate: number;
+}
+
+export interface WordOverallStats {
+  totalWords: number;
+  attempted: number;
+  averageSuccess: number;
 }

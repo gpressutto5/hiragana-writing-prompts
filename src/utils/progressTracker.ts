@@ -7,10 +7,14 @@ import type {
   StreakData,
   SRSData,
   HiraganaCharacter,
+  WordProgress,
+  WordStats,
+  WordOverallStats,
 } from '../types';
 
 const STORAGE_KEY = 'hiragana_progress';
 const DAILY_PRACTICE_KEY = 'hiragana_daily_practice';
+const WORD_PROGRESS_KEY = 'hiragana_word_progress';
 
 // SRS Algorithm Constants (SM-2 based)
 const MIN_EASINESS_FACTOR = 1.3;
@@ -132,6 +136,7 @@ export const saveAttempt = (characterId: string, difficulty: number): ProgressDa
       timestamp: new Date().toISOString(),
       correct: isCorrect,
       difficulty,
+      source: 'character',
     });
 
     // Update SRS data
@@ -374,4 +379,241 @@ export const getCharactersDueForReview = (
   charactersByPriority.sort((a, b) => b.priority - a.priority);
 
   return charactersByPriority.map(item => item.char);
+};
+
+// ============================================================================
+// Word Progress Tracking
+// ============================================================================
+
+// Storage interface for word progress
+interface WordProgressData {
+  [wordId: string]: WordProgress;
+}
+
+// Get word progress data from localStorage
+const getWordProgress = (): WordProgressData => {
+  try {
+    const data = localStorage.getItem(WORD_PROGRESS_KEY);
+    return data ? (JSON.parse(data) as WordProgressData) : {};
+  } catch (error) {
+    console.error('Error reading word progress:', error);
+    return {};
+  }
+};
+
+/**
+ * Save a word practice attempt
+ * @param wordId - ID of the word practiced
+ * @param incorrectCharacterIds - Array of character IDs that were incorrect (empty if all correct)
+ */
+export const saveWordAttempt = (wordId: string, incorrectCharacterIds: string[]): void => {
+  try {
+    // Update word progress
+    const wordProgress = getWordProgress();
+
+    if (!wordProgress[wordId]) {
+      wordProgress[wordId] = {
+        attempts: 0,
+        correct: 0,
+        lastAttempt: null,
+        characterBreakdown: {},
+      };
+    }
+
+    const wordData = wordProgress[wordId];
+    if (!wordData) {
+      throw new Error(`Failed to initialize progress for word: ${wordId}`);
+    }
+
+    const isCorrect = incorrectCharacterIds.length === 0;
+    wordData.attempts += 1;
+    if (isCorrect) {
+      wordData.correct += 1;
+    }
+    wordData.lastAttempt = new Date().toISOString();
+
+    localStorage.setItem(WORD_PROGRESS_KEY, JSON.stringify(wordProgress));
+
+    // Update character progress for all characters in the word
+    // We need to get the word data to know which characters it contains
+    // This will be called from App.tsx which has access to the word data
+    // For now, we'll update the character breakdown in word progress
+    incorrectCharacterIds.forEach(charId => {
+      if (!wordData.characterBreakdown[charId]) {
+        wordData.characterBreakdown[charId] = { correct: 0, incorrect: 0 };
+      }
+      const charBreakdown = wordData.characterBreakdown[charId];
+      if (charBreakdown) {
+        charBreakdown.incorrect += 1;
+      }
+    });
+
+    // Update daily practice tracking
+    updateDailyPractice();
+  } catch (error) {
+    console.error('Error saving word attempt:', error);
+  }
+};
+
+/**
+ * Save word attempt and update character-level progress
+ * @param wordId - ID of the word practiced
+ * @param allCharacterIds - All character IDs in the word
+ * @param incorrectCharacterIds - Character IDs that were marked incorrect
+ */
+export const saveWordAttemptWithCharacters = (
+  wordId: string,
+  allCharacterIds: string[],
+  incorrectCharacterIds: string[]
+): void => {
+  // Save word-level progress
+  saveWordAttempt(wordId, incorrectCharacterIds);
+
+  // Update character-level progress
+  const progress = getProgress();
+  const timestamp = new Date().toISOString();
+  const incorrectSet = new Set(incorrectCharacterIds);
+
+  allCharacterIds.forEach(charId => {
+    const isCorrect = !incorrectSet.has(charId);
+
+    if (!progress[charId]) {
+      progress[charId] = {
+        attempts: 0,
+        correct: 0,
+        lastAttempt: null,
+        history: [],
+        srs: createDefaultSRS(),
+      };
+    }
+
+    const charProgress = progress[charId];
+    if (!charProgress) return;
+
+    charProgress.attempts += 1;
+    if (isCorrect) {
+      charProgress.correct += 1;
+    }
+    charProgress.lastAttempt = timestamp;
+    charProgress.history.push({
+      timestamp,
+      correct: isCorrect,
+      source: 'word',
+      wordId,
+    });
+
+    // Update SRS data (treat word practice as difficulty 3 for correct, 0 for incorrect)
+    const difficulty = isCorrect ? 3 : 0;
+    charProgress.srs = calculateSRS(charProgress.srs, difficulty);
+  });
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+
+  // Also update character breakdown in word progress
+  const wordProgress = getWordProgress();
+  const wordData = wordProgress[wordId];
+  if (wordData) {
+    allCharacterIds.forEach(charId => {
+      const isCorrect = !incorrectSet.has(charId);
+      if (!wordData.characterBreakdown[charId]) {
+        wordData.characterBreakdown[charId] = { correct: 0, incorrect: 0 };
+      }
+      const charBreakdown = wordData.characterBreakdown[charId];
+      if (charBreakdown) {
+        if (isCorrect) {
+          charBreakdown.correct += 1;
+        } else {
+          charBreakdown.incorrect += 1;
+        }
+      }
+    });
+    localStorage.setItem(WORD_PROGRESS_KEY, JSON.stringify(wordProgress));
+  }
+};
+
+/**
+ * Get statistics for a specific word
+ * @param wordId - ID of the word
+ * @returns Statistics including success rate
+ */
+export const getWordStats = (wordId: string): WordStats => {
+  const wordProgress = getWordProgress();
+  const wordData = wordProgress[wordId];
+
+  if (!wordData || wordData.attempts === 0) {
+    return {
+      attempts: 0,
+      correct: 0,
+      successRate: 0,
+      lastAttempt: null,
+      characterBreakdown: {},
+    };
+  }
+
+  return {
+    ...wordData,
+    successRate: (wordData.correct / wordData.attempts) * 100,
+  };
+};
+
+/**
+ * Get overall word practice statistics
+ * @returns Aggregate statistics across all words
+ */
+export const getWordOverallStats = (): WordOverallStats => {
+  const wordProgress = getWordProgress();
+  const wordIds = Object.keys(wordProgress);
+
+  if (wordIds.length === 0) {
+    return {
+      totalWords: 0,
+      attempted: 0,
+      averageSuccess: 0,
+    };
+  }
+
+  let totalAttempts = 0;
+  let totalCorrect = 0;
+  let attemptedCount = 0;
+
+  wordIds.forEach(id => {
+    const wordData = wordProgress[id];
+    if (wordData && wordData.attempts > 0) {
+      attemptedCount += 1;
+      totalAttempts += wordData.attempts;
+      totalCorrect += wordData.correct;
+    }
+  });
+
+  return {
+    totalWords: wordIds.length,
+    attempted: attemptedCount,
+    averageSuccess: totalAttempts > 0 ? (totalCorrect / totalAttempts) * 100 : 0,
+  };
+};
+
+/**
+ * Get all word statistics sorted by success rate
+ * @param ascending - If true, sort ascending (worst first), otherwise descending (best first)
+ * @returns Array of word IDs with their statistics
+ */
+export const getAllWordStats = (ascending = false): Array<{ wordId: string; stats: WordStats }> => {
+  const wordProgress = getWordProgress();
+  const wordStats = Object.entries(wordProgress)
+    .filter(([_, data]) => data.attempts > 0)
+    .map(([wordId, data]) => ({
+      wordId,
+      stats: {
+        ...data,
+        successRate: (data.correct / data.attempts) * 100,
+      },
+    }));
+
+  // Sort by success rate
+  wordStats.sort((a, b) => {
+    const diff = a.stats.successRate - b.stats.successRate;
+    return ascending ? diff : -diff;
+  });
+
+  return wordStats;
 };

@@ -7,12 +7,23 @@ import {
   preloadAudio,
 } from '../utils/audioService';
 
-function PromptCard({ character, onAnswer, onBack }: PromptCardProps) {
+function PromptCard(props: PromptCardProps) {
+  const { type, onBack } = props;
   const [revealed, setRevealed] = useState(false);
   const [autoPlay, setAutoPlay] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const currentPlayingPromise = useRef<Promise<void> | null>(null);
   const shouldAutoplayNextCharacter = useRef(false);
+
+  // Word-specific state: track which characters are marked incorrect
+  const [incorrectCharIds, setIncorrectCharIds] = useState<Set<string>>(new Set());
+
+  // Get the appropriate data based on type
+  const character = type === 'character' ? props.character : null;
+  const word = type === 'word' ? props.word : null;
+  const displayText = character?.hiragana || word?.word || '';
+  const romaji = character?.romaji || word?.romaji || '';
+  const meaning = word?.meaning;
 
   // Load audio settings on mount
   useEffect(() => {
@@ -20,10 +31,17 @@ function PromptCard({ character, onAnswer, onBack }: PromptCardProps) {
     setAutoPlay(settings.autoPlay);
   }, []);
 
-  // Preload audio for current character
+  // Reset incorrectCharIds when new word appears
   useEffect(() => {
-    preloadAudio();
-  }, [character.hiragana]);
+    setIncorrectCharIds(new Set());
+  }, [word?.id]);
+
+  // Preload audio for current character (character mode only)
+  useEffect(() => {
+    if (character) {
+      preloadAudio();
+    }
+  }, [character?.hiragana]);
 
   // Auto-play audio when new character appears (prompt stage only)
   // This runs after handleAnswer sets the flag and parent updates character
@@ -38,7 +56,7 @@ function PromptCard({ character, onAnswer, onBack }: PromptCardProps) {
       }, 0);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [character.hiragana, revealed, autoPlay]);
+  }, [character?.hiragana, revealed, autoPlay]);
 
   const handleReveal = () => {
     setRevealed(true);
@@ -49,20 +67,28 @@ function PromptCard({ character, onAnswer, onBack }: PromptCardProps) {
     }
   };
 
-  const handleAnswer = (difficulty: number) => {
+  const handleAnswer = (difficulty?: number) => {
     // Mark that we should autoplay when the next character loads
     if (autoPlay) {
       shouldAutoplayNextCharacter.current = true;
     }
-    onAnswer(difficulty);
+
+    if (type === 'character' && difficulty !== undefined) {
+      props.onAnswer(difficulty);
+    } else if (type === 'word') {
+      // Convert Set to array for word answer
+      props.onAnswer(Array.from(incorrectCharIds));
+    }
+
     setRevealed(false);
+    setIncorrectCharIds(new Set()); // Reset for next word
   };
 
   const handlePlayAudio = async () => {
     setIsPlaying(true);
 
     // Create and track the current playing promise
-    const playPromise = playPronunciation(character.hiragana);
+    const playPromise = playPronunciation(displayText);
     currentPlayingPromise.current = playPromise;
 
     try {
@@ -76,6 +102,19 @@ function PromptCard({ character, onAnswer, onBack }: PromptCardProps) {
         currentPlayingPromise.current = null;
       }
     }
+  };
+
+  // Toggle character selection for word mode
+  const toggleCharacterIncorrect = (charId: string) => {
+    setIncorrectCharIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(charId)) {
+        newSet.delete(charId);
+      } else {
+        newSet.add(charId);
+      }
+      return newSet;
+    });
   };
 
   const toggleAutoPlay = () => {
@@ -143,13 +182,16 @@ function PromptCard({ character, onAnswer, onBack }: PromptCardProps) {
       </button>
 
       <div className="w-full max-w-md">
-        <h2 className="text-2xl font-bold text-gray-800 mb-8 text-center">Write this character:</h2>
+        <h2 className="text-2xl font-bold text-gray-800 mb-8 text-center">
+          {type === 'character' ? 'Write this character:' : 'Write this word:'}
+        </h2>
 
         {/* Romaji prompt */}
         {!revealed && (
           <>
-            <div className="relative bg-gradient-to-br from-indigo-100 to-purple-100 rounded-2xl p-18 mb-8 text-center shadow-lg h-64 flex items-center justify-center">
-              <div className="text-6xl font-bold text-indigo-900">{character.romaji}</div>
+            <div className="relative bg-gradient-to-br from-indigo-100 to-purple-100 rounded-2xl p-18 mb-8 text-center shadow-lg h-64 flex flex-col items-center justify-center">
+              <div className="text-6xl font-bold text-indigo-900">{romaji}</div>
+              {meaning && <div className="text-lg text-gray-600 mt-4">({meaning})</div>}
 
               {/* Floating audio controls */}
               <div className="absolute top-4 right-4 flex gap-2">
@@ -186,8 +228,9 @@ function PromptCard({ character, onAnswer, onBack }: PromptCardProps) {
 
             <div className="text-center mb-8">
               <p className="text-gray-600 mb-4 h-12 flex items-center justify-center">
-                Write the hiragana character in your notebook, then click reveal to check your
-                answer.
+                {type === 'character'
+                  ? 'Write the hiragana character in your notebook, then click reveal to check your answer.'
+                  : 'Write the word in hiragana in your notebook, then click reveal to check your answer.'}
               </p>
               <button
                 onClick={handleReveal}
@@ -207,10 +250,13 @@ function PromptCard({ character, onAnswer, onBack }: PromptCardProps) {
         {/* Revealed answer */}
         {revealed && (
           <>
-            {/* Hiragana character */}
-            <div className="relative bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl p-12 mb-8 text-center shadow-lg h-64 flex flex-col items-center justify-center">
-              <div className="text-8xl font-bold text-green-900">{character.hiragana}</div>
-              <div className="text-lg text-gray-600 mt-4">{character.romaji}</div>
+            {/* Hiragana display */}
+            <div className="relative bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl p-12 mb-8 text-center shadow-lg min-h-64 flex flex-col items-center justify-center">
+              <div className="text-8xl font-bold text-green-900">{displayText}</div>
+              <div className="text-lg text-gray-600 mt-4">
+                {romaji}
+                {meaning && ` (${meaning})`}
+              </div>
 
               {/* Floating audio controls */}
               <div className="absolute top-4 right-4 flex gap-2">
@@ -245,30 +291,88 @@ function PromptCard({ character, onAnswer, onBack }: PromptCardProps) {
               </div>
             </div>
 
-            {/* Self-assessment buttons */}
+            {/* Self-assessment */}
             <div className="text-center mb-8">
-              <p className="text-gray-600 mb-4 font-medium h-12 flex items-center justify-center">
-                Did you write it correctly?
-              </p>
-              <div className="flex gap-4 justify-center">
-                <button
-                  onClick={() => handleAnswer(0)}
-                  className="flex-1 max-w-xs px-8 py-4 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors text-xl"
-                >
-                  ✕ Incorrect
-                </button>
-                <button
-                  onClick={() => handleAnswer(3)}
-                  className="flex-1 max-w-xs px-8 py-4 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors text-xl"
-                >
-                  ○ Correct
-                </button>
-              </div>
-              <p className="text-sm text-gray-500 mt-3">
-                Keyboard: <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">P</kbd> play audio
-                • <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">X</kbd> Incorrect •{' '}
-                <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">Space/Enter</kbd> Correct
-              </p>
+              {/* Character mode: Simple correct/incorrect */}
+              {type === 'character' && (
+                <>
+                  <p className="text-gray-600 mb-4 font-medium h-12 flex items-center justify-center">
+                    Did you write it correctly?
+                  </p>
+                  <div className="flex gap-4 justify-center">
+                    <button
+                      onClick={() => handleAnswer(0)}
+                      className="flex-1 max-w-xs px-8 py-4 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors text-xl"
+                    >
+                      ✕ Incorrect
+                    </button>
+                    <button
+                      onClick={() => handleAnswer(3)}
+                      className="flex-1 max-w-xs px-8 py-4 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors text-xl"
+                    >
+                      ○ Correct
+                    </button>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-3">
+                    Keyboard: <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">P</kbd> play
+                    audio • <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">X</kbd> Incorrect
+                    • <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">Space/Enter</kbd>{' '}
+                    Correct
+                  </p>
+                </>
+              )}
+
+              {/* Word mode: Correct or select incorrect characters */}
+              {type === 'word' && word && (
+                <>
+                  <p className="text-gray-600 mb-4 font-medium h-12 flex items-center justify-center">
+                    Did you write it correctly?
+                  </p>
+                  <div className="flex gap-4 justify-center mb-6">
+                    <button
+                      onClick={() => handleAnswer()}
+                      className="flex-1 max-w-xs px-8 py-4 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors text-xl"
+                    >
+                      ○ Correct
+                    </button>
+                  </div>
+
+                  {/* Character selection for incorrect words */}
+                  <div className="mb-6">
+                    <p className="text-gray-700 font-medium mb-3">
+                      Or select which characters you got wrong:
+                    </p>
+                    <div className="flex flex-wrap gap-2 justify-center">
+                      {word.word.split('').map((char, idx) => {
+                        const charId = word.characters[idx];
+                        if (!charId) return null;
+                        const isIncorrect = incorrectCharIds.has(charId);
+                        return (
+                          <button
+                            key={`${charId}-${idx}`}
+                            onClick={() => toggleCharacterIncorrect(charId)}
+                            className={`px-4 py-3 text-2xl font-bold rounded-lg transition-all ${
+                              isIncorrect
+                                ? 'bg-red-500 text-white shadow-lg'
+                                : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                            }`}
+                          >
+                            {char}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {incorrectCharIds.size > 0 && (
+                      <button
+                        onClick={() => handleAnswer()}
+                        className="mt-4 px-8 py-3 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors"
+                      >
+                        Submit ({incorrectCharIds.size} incorrect)
+                      </button>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           </>
         )}

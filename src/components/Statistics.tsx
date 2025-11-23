@@ -104,6 +104,11 @@ function Statistics() {
         )}
       </div>
 
+      {/* Calendar */}
+      <div className="mb-8">
+        <Calendar />
+      </div>
+
       {/* Overall Character Statistics */}
       <h3 className="text-xl font-bold text-gray-800 mb-4">Character Practice</h3>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -127,47 +132,9 @@ function Statistics() {
         </div>
       </div>
 
-      {/* Word Statistics */}
-      {wordOverallStats.attempted > 0 && (
-        <>
-          <h3 className="text-xl font-bold text-gray-800 mb-4">Word Practice</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
-            <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg p-6 text-center">
-              <div className="text-3xl font-bold text-amber-900">{wordOverallStats.attempted}</div>
-              <div className="text-sm text-amber-700 mt-1">Words Practiced</div>
-            </div>
-            <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-lg p-6 text-center">
-              <div className="text-3xl font-bold text-emerald-900">
-                {wordOverallStats.averageSuccess.toFixed(0)}%
-              </div>
-              <div className="text-sm text-emerald-700 mt-1">Average Success</div>
-            </div>
-            <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-lg p-6 text-center">
-              <div className="text-3xl font-bold text-cyan-900">{wordOverallStats.totalWords}</div>
-              <div className="text-sm text-cyan-700 mt-1">Total Words</div>
-            </div>
-          </div>
-
-          {/* Top Words */}
-          <WordPerformanceList title="🏆 Top Words" words={topWords} variant="top" />
-
-          {/* Words Needing Practice */}
-          <WordPerformanceList
-            title="📚 Words Needing Practice"
-            words={wordsNeedingPractice}
-            variant="needs-practice"
-          />
-        </>
-      )}
-
-      {/* Calendar */}
-      <div className="mb-8">
-        <Calendar />
-      </div>
-
       {/* Per-character statistics */}
       {charactersWithStats.length > 0 ? (
-        <div>
+        <div className="mb-8">
           <h3 className="text-xl font-bold text-gray-800 mb-4">Character Performance</h3>
           <div className="space-y-2">
             {charactersWithStats.map(char => (
@@ -225,6 +192,39 @@ function Statistics() {
           <h3 className="text-xl font-semibold text-gray-800 mb-2">No practice data yet</h3>
           <p className="text-gray-600">Start practicing to see your progress here!</p>
         </div>
+      )}
+
+      {/* Word Statistics */}
+      {wordOverallStats.attempted > 0 && (
+        <>
+          <h3 className="text-xl font-bold text-gray-800 mb-4">Word Practice</h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+            <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg p-6 text-center">
+              <div className="text-3xl font-bold text-amber-900">{wordOverallStats.attempted}</div>
+              <div className="text-sm text-amber-700 mt-1">Words Practiced</div>
+            </div>
+            <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-lg p-6 text-center">
+              <div className="text-3xl font-bold text-emerald-900">
+                {wordOverallStats.averageSuccess.toFixed(0)}%
+              </div>
+              <div className="text-sm text-emerald-700 mt-1">Average Success</div>
+            </div>
+            <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-lg p-6 text-center">
+              <div className="text-3xl font-bold text-cyan-900">{wordOverallStats.totalWords}</div>
+              <div className="text-sm text-cyan-700 mt-1">Total Words</div>
+            </div>
+          </div>
+
+          {/* Top Words */}
+          <WordPerformanceList title="🏆 Top Words" words={topWords} variant="top" />
+
+          {/* Words Needing Practice */}
+          <WordPerformanceList
+            title="📚 Words Needing Practice"
+            words={wordsNeedingPractice}
+            variant="needs-practice"
+          />
+        </>
       )}
     </div>
   );

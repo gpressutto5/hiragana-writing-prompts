@@ -3,6 +3,7 @@ import { groups } from '../data/hiragana';
 import { wordsData } from '../data/words';
 import { canEnableWordMode, getAvailableWordCount } from '../utils/wordFilter';
 import type { CharacterSelectorProps, HiraganaGroupId } from '../types';
+import { toggleSetItem } from '../utils/setUtils';
 
 function CharacterSelector({
   onStart,
@@ -14,24 +15,30 @@ function CharacterSelector({
   const [selectedCharIds, setSelectedCharIds] = useState<Set<string>>(new Set());
 
   const toggleGroup = (groupId: HiraganaGroupId) => {
-    const newSelectedGroups = new Set(selectedGroups);
     const groupChars = allCharacters.filter(char => char.group === groupId);
+    const isCurrentlySelected = selectedGroups.has(groupId);
 
-    if (newSelectedGroups.has(groupId)) {
-      // Deselect group
-      newSelectedGroups.delete(groupId);
-      const newSelectedCharIds = new Set(selectedCharIds);
-      groupChars.forEach(char => newSelectedCharIds.delete(char.id));
+    // Toggle the group
+    setSelectedGroups(toggleSetItem(selectedGroups, groupId));
+
+    // Update character IDs accordingly
+    if (isCurrentlySelected) {
+      // Deselect all characters in this group
+      let newSelectedCharIds = selectedCharIds;
+      groupChars.forEach(char => {
+        newSelectedCharIds = toggleSetItem(newSelectedCharIds, char.id);
+      });
       setSelectedCharIds(newSelectedCharIds);
     } else {
-      // Select group
-      newSelectedGroups.add(groupId);
-      const newSelectedCharIds = new Set(selectedCharIds);
-      groupChars.forEach(char => newSelectedCharIds.add(char.id));
+      // Select all characters in this group
+      let newSelectedCharIds = selectedCharIds;
+      groupChars.forEach(char => {
+        if (!newSelectedCharIds.has(char.id)) {
+          newSelectedCharIds = toggleSetItem(newSelectedCharIds, char.id);
+        }
+      });
       setSelectedCharIds(newSelectedCharIds);
     }
-
-    setSelectedGroups(newSelectedGroups);
   };
 
   const selectAll = () => {

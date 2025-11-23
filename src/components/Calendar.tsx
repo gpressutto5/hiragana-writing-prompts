@@ -1,11 +1,15 @@
 import { useState } from 'react';
 import { getDailyPracticeHistory, getStreakData } from '../utils/progressTracker';
+import { getPracticeCountColor } from '../utils/colorUtils';
+import { getToggleButtonClass } from '../utils/buttonStyles';
+import { useCalendarNavigation } from '../hooks/useCalendarNavigation';
+import { getDateString } from '../utils/dateUtils';
 
 type ViewMode = 'month' | 'week';
 
 function Calendar() {
   const [viewMode, setViewMode] = useState<ViewMode>('week');
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const { currentDate, previousMonth, nextMonth, previousWeek, nextWeek } = useCalendarNavigation();
 
   const streakData = getStreakData();
   const dailyPractice = getDailyPracticeHistory();
@@ -56,10 +60,6 @@ function Calendar() {
     return days;
   };
 
-  const getDateString = (date: Date): string => {
-    return date.toISOString().split('T')[0] ?? '';
-  };
-
   const getPracticeCountForDay = (day: number | null): number => {
     if (day === null) return 0;
 
@@ -71,34 +71,6 @@ function Calendar() {
   const getPracticeCountForDate = (date: Date): number => {
     const dateStr = getDateString(date);
     return practiceMap.get(dateStr) ?? 0;
-  };
-
-  const getColorIntensity = (count: number): string => {
-    if (count === 0) return 'bg-gray-100';
-    if (count < 5) return 'bg-green-200';
-    if (count < 10) return 'bg-green-400';
-    if (count < 20) return 'bg-green-600';
-    return 'bg-green-800';
-  };
-
-  const previousMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
-  };
-
-  const nextMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
-  };
-
-  const previousWeek = () => {
-    const newDate = new Date(currentDate);
-    newDate.setDate(currentDate.getDate() - 7);
-    setCurrentDate(newDate);
-  };
-
-  const nextWeek = () => {
-    const newDate = new Date(currentDate);
-    newDate.setDate(currentDate.getDate() + 7);
-    setCurrentDate(newDate);
   };
 
   const monthNames = [
@@ -128,21 +100,13 @@ function Calendar() {
         <div className="flex gap-2">
           <button
             onClick={() => setViewMode('month')}
-            className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${
-              viewMode === 'month'
-                ? 'bg-indigo-600 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
+            className={getToggleButtonClass(viewMode === 'month')}
           >
             Month
           </button>
           <button
             onClick={() => setViewMode('week')}
-            className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${
-              viewMode === 'week'
-                ? 'bg-indigo-600 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
+            className={getToggleButtonClass(viewMode === 'week')}
           >
             Week
           </button>
@@ -202,7 +166,7 @@ function Calendar() {
               }
 
               const practiceCount = getPracticeCountForDay(day);
-              const colorClass = getColorIntensity(practiceCount);
+              const colorClass = getPracticeCountColor(practiceCount);
               const isToday =
                 day === new Date().getDate() &&
                 currentDate.getMonth() === new Date().getMonth() &&
@@ -233,7 +197,7 @@ function Calendar() {
           <div className="grid grid-cols-7 gap-2">
             {weekDays.map(date => {
               const practiceCount = getPracticeCountForDate(date);
-              const colorClass = getColorIntensity(practiceCount);
+              const colorClass = getPracticeCountColor(practiceCount);
               const isToday = getDateString(date) === getDateString(new Date());
 
               return (

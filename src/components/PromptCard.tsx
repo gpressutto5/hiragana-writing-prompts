@@ -6,6 +6,10 @@ import {
   saveAudioSettings,
   preloadAudio,
 } from '../utils/audioService';
+import { AudioControlsPanel } from './shared/AudioControlsPanel';
+import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
+import { toggleSetItem } from '../utils/setUtils';
+import { getDifficultyButtonClass } from '../utils/buttonStyles';
 
 function PromptCard(props: PromptCardProps) {
   const { type, onBack } = props;
@@ -106,15 +110,7 @@ function PromptCard(props: PromptCardProps) {
 
   // Toggle character selection for word mode
   const toggleCharacterIncorrect = (charId: string) => {
-    setIncorrectCharIds(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(charId)) {
-        newSet.delete(charId);
-      } else {
-        newSet.add(charId);
-      }
-      return newSet;
-    });
+    setIncorrectCharIds(prev => toggleSetItem(prev, charId));
   };
 
   const toggleAutoPlay = () => {
@@ -124,50 +120,22 @@ function PromptCard(props: PromptCardProps) {
   };
 
   // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if typing in an input field
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-        return;
-      }
-
-      const key = e.key.toLowerCase();
-
-      // P: Play audio (works on both stages)
-      if (key === 'p') {
-        e.preventDefault();
-        void handlePlayAudio();
-        return;
-      }
-
-      // Space or Enter: Reveal answer (only when not revealed)
-      if (!revealed && (key === ' ' || key === 'enter')) {
-        e.preventDefault();
-        handleReveal();
-        return;
-      }
-
-      // When revealed, handle answer shortcuts
-      if (revealed) {
-        // Incorrect: X
-        if (key === 'x') {
-          e.preventDefault();
-          handleAnswer(0);
-          return;
-        }
-
-        // Correct: Space, Enter
-        if (key === ' ' || key === 'enter') {
-          e.preventDefault();
-          handleAnswer(3);
-          return;
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [revealed, handleAnswer]);
+  useKeyboardShortcuts(
+    [
+      { key: 'p', handler: () => void handlePlayAudio() },
+      ...(revealed
+        ? [
+            { key: 'x', handler: () => handleAnswer(0) },
+            { key: ' ', handler: () => handleAnswer(3) },
+            { key: 'enter', handler: () => handleAnswer(3) },
+          ]
+        : [
+            { key: ' ', handler: handleReveal },
+            { key: 'enter', handler: handleReveal },
+          ]),
+    ],
+    [revealed, handleAnswer]
+  );
 
   return (
     <div className="flex flex-col items-center">
@@ -194,36 +162,12 @@ function PromptCard(props: PromptCardProps) {
               {meaning && <div className="text-lg text-gray-600 mt-4">({meaning})</div>}
 
               {/* Floating audio controls */}
-              <div className="absolute top-4 right-4 flex gap-2">
-                <button
-                  onClick={handlePlayAudio}
-                  disabled={isPlaying}
-                  className="p-2 bg-white/90 hover:bg-white text-indigo-600 rounded-lg shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                  aria-label="Play pronunciation"
-                  title="Play pronunciation (P or A)"
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" />
-                  </svg>
-                </button>
-                <button
-                  onClick={toggleAutoPlay}
-                  className={`px-3 py-2 rounded-lg shadow-md transition-all text-xs font-semibold ${
-                    autoPlay
-                      ? 'bg-green-600 hover:bg-green-700 text-white'
-                      : 'bg-white/90 hover:bg-white text-gray-600'
-                  }`}
-                  aria-label={autoPlay ? 'Disable auto-play' : 'Enable auto-play'}
-                  title={autoPlay ? 'Auto-play enabled' : 'Auto-play disabled'}
-                >
-                  {autoPlay ? 'Auto ON' : 'Auto OFF'}
-                </button>
-              </div>
+              <AudioControlsPanel
+                onPlayAudio={handlePlayAudio}
+                isPlaying={isPlaying}
+                onToggleAutoPlay={toggleAutoPlay}
+                autoPlay={autoPlay}
+              />
             </div>
 
             <div className="text-center mb-8">
@@ -259,36 +203,12 @@ function PromptCard(props: PromptCardProps) {
               </div>
 
               {/* Floating audio controls */}
-              <div className="absolute top-4 right-4 flex gap-2">
-                <button
-                  onClick={handlePlayAudio}
-                  disabled={isPlaying}
-                  className="p-2 bg-white/90 hover:bg-white text-green-600 rounded-lg shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                  aria-label="Play pronunciation"
-                  title="Play pronunciation (P or A)"
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" />
-                  </svg>
-                </button>
-                <button
-                  onClick={toggleAutoPlay}
-                  className={`px-3 py-2 rounded-lg shadow-md transition-all text-xs font-semibold ${
-                    autoPlay
-                      ? 'bg-green-600 hover:bg-green-700 text-white'
-                      : 'bg-white/90 hover:bg-white text-gray-600'
-                  }`}
-                  aria-label={autoPlay ? 'Disable auto-play' : 'Enable auto-play'}
-                  title={autoPlay ? 'Auto-play enabled' : 'Auto-play disabled'}
-                >
-                  {autoPlay ? 'Auto ON' : 'Auto OFF'}
-                </button>
-              </div>
+              <AudioControlsPanel
+                onPlayAudio={handlePlayAudio}
+                isPlaying={isPlaying}
+                onToggleAutoPlay={toggleAutoPlay}
+                autoPlay={autoPlay}
+              />
             </div>
 
             {/* Self-assessment */}
@@ -302,13 +222,13 @@ function PromptCard(props: PromptCardProps) {
                   <div className="flex gap-4 justify-center">
                     <button
                       onClick={() => handleAnswer(0)}
-                      className="flex-1 max-w-xs px-8 py-4 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors text-xl"
+                      className={getDifficultyButtonClass('red')}
                     >
                       ✕ Incorrect
                     </button>
                     <button
                       onClick={() => handleAnswer(3)}
-                      className="flex-1 max-w-xs px-8 py-4 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors text-xl"
+                      className={getDifficultyButtonClass('green')}
                     >
                       ○ Correct
                     </button>
@@ -331,7 +251,7 @@ function PromptCard(props: PromptCardProps) {
                   <div className="flex gap-4 justify-center mb-6">
                     <button
                       onClick={() => handleAnswer()}
-                      className="flex-1 max-w-xs px-8 py-4 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors text-xl"
+                      className={getDifficultyButtonClass('green')}
                     >
                       ○ Correct
                     </button>

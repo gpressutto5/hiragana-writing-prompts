@@ -10,6 +10,8 @@ import { hiraganaData } from '../data/hiragana';
 import { wordsData } from '../data/words';
 import Calendar from './Calendar';
 import type { HiraganaCharacter, CharacterStats, WordStats } from '../types';
+import { WordPerformanceList } from './shared/WordPerformanceList';
+import { getSuccessRateColor } from '../utils/colorUtils';
 
 interface CharacterWithStats extends HiraganaCharacter {
   stats: CharacterStats;
@@ -147,62 +149,14 @@ function Statistics() {
           </div>
 
           {/* Top Words */}
-          {topWords.length > 0 && (
-            <div className="mb-8">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">🏆 Top Words</h3>
-              <div className="space-y-2">
-                {topWords.map(word => (
-                  <div
-                    key={word.id}
-                    className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="text-3xl font-bold text-gray-800">{word.word}</div>
-                      <div>
-                        <div className="font-medium text-gray-800">{word.romaji}</div>
-                        <div className="text-sm text-gray-600">{word.meaning}</div>
-                        <div className="text-xs text-gray-500">
-                          {word.stats.correct} / {word.stats.attempts} attempts
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-2xl font-bold text-green-600">
-                      {word.stats.successRate.toFixed(0)}%
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          <WordPerformanceList title="🏆 Top Words" words={topWords} variant="top" />
 
           {/* Words Needing Practice */}
-          {wordsNeedingPractice.length > 0 && (
-            <div className="mb-8">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">📚 Words Needing Practice</h3>
-              <div className="space-y-2">
-                {wordsNeedingPractice.map(word => (
-                  <div
-                    key={word.id}
-                    className="flex items-center justify-between p-4 bg-gradient-to-r from-red-50 to-orange-50 rounded-lg"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="text-3xl font-bold text-gray-800">{word.word}</div>
-                      <div>
-                        <div className="font-medium text-gray-800">{word.romaji}</div>
-                        <div className="text-sm text-gray-600">{word.meaning}</div>
-                        <div className="text-xs text-gray-500">
-                          {word.stats.correct} / {word.stats.attempts} attempts
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-2xl font-bold text-red-600">
-                      {word.stats.successRate.toFixed(0)}%
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          <WordPerformanceList
+            title="📚 Words Needing Practice"
+            words={wordsNeedingPractice}
+            variant="needs-practice"
+          />
         </>
       )}
 
@@ -244,13 +198,7 @@ function Statistics() {
                   {/* Progress bar */}
                   <div className="w-32 bg-gray-200 rounded-full h-3">
                     <div
-                      className={`h-3 rounded-full transition-all ${
-                        char.stats.successRate >= 80
-                          ? 'bg-green-500'
-                          : char.stats.successRate >= 50
-                            ? 'bg-yellow-500'
-                            : 'bg-red-500'
-                      }`}
+                      className={`h-3 rounded-full transition-all ${getSuccessRateColor(char.stats.successRate)}`}
                       style={{ width: `${char.stats.successRate}%` }}
                     ></div>
                   </div>

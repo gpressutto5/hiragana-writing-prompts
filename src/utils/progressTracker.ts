@@ -11,6 +11,8 @@ import type {
   WordStats,
   WordOverallStats,
 } from '../types';
+import { getDateString } from './dateUtils';
+import { calculateSuccessRate } from './mathUtils';
 
 const STORAGE_KEY = 'hiragana_progress';
 const DAILY_PRACTICE_KEY = 'hiragana_daily_practice';
@@ -171,7 +173,7 @@ export const getCharacterStats = (characterId: string): CharacterStats => {
   return {
     attempts: charProgress.attempts,
     correct: charProgress.correct,
-    successRate: (charProgress.correct / charProgress.attempts) * 100,
+    successRate: calculateSuccessRate(charProgress.correct, charProgress.attempts),
     lastAttempt: charProgress.lastAttempt,
   };
 };
@@ -204,7 +206,7 @@ export const getOverallStats = (): OverallStats => {
   return {
     totalAttempts,
     totalCorrect,
-    overallSuccessRate: totalAttempts > 0 ? (totalCorrect / totalAttempts) * 100 : 0,
+    overallSuccessRate: calculateSuccessRate(totalCorrect, totalAttempts),
     charactersStudied: characterIds.length,
   };
 };
@@ -238,11 +240,6 @@ export const getRecentAttempts = (limit = 10): RecentAttempt[] => {
   allAttempts.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
   return allAttempts.slice(0, limit);
-};
-
-// Helper function to get date string in YYYY-MM-DD format
-const getDateString = (date: Date): string => {
-  return date.toISOString().split('T')[0] ?? '';
 };
 
 // Get daily practice data from localStorage
@@ -552,7 +549,7 @@ export const getWordStats = (wordId: string): WordStats => {
 
   return {
     ...wordData,
-    successRate: (wordData.correct / wordData.attempts) * 100,
+    successRate: calculateSuccessRate(wordData.correct, wordData.attempts),
   };
 };
 
@@ -588,7 +585,7 @@ export const getWordOverallStats = (): WordOverallStats => {
   return {
     totalWords: wordIds.length,
     attempted: attemptedCount,
-    averageSuccess: totalAttempts > 0 ? (totalCorrect / totalAttempts) * 100 : 0,
+    averageSuccess: calculateSuccessRate(totalCorrect, totalAttempts),
   };
 };
 
@@ -605,7 +602,7 @@ export const getAllWordStats = (ascending = false): Array<{ wordId: string; stat
       wordId,
       stats: {
         ...data,
-        successRate: (data.correct / data.attempts) * 100,
+        successRate: calculateSuccessRate(data.correct, data.attempts),
       },
     }));
 

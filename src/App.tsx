@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import CharacterSelector from './components/CharacterSelector';
 import PromptCard from './components/PromptCard';
 import Statistics from './components/Statistics';
@@ -11,18 +11,20 @@ import {
 } from './utils/progressTracker';
 import { filterAvailableWords } from './utils/wordFilter';
 import type { HiraganaCharacter, ViewType, PracticeMode, WordData } from './types';
+import { useRecentItems } from './hooks/useRecentItems';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import './App.css';
 
 function App() {
   const [view, setView] = useState<ViewType>('selector');
   const [selectedCharacters, setSelectedCharacters] = useState<HiraganaCharacter[]>([]);
   const [currentCharacter, setCurrentCharacter] = useState<HiraganaCharacter | null>(null);
-  const [recentCharacters, setRecentCharacters] = useState<string[]>([]);
+  const [recentCharacters, addRecentCharacter, resetRecentCharacters] = useRecentItems(3);
   const [practiceMode, setPracticeMode] = useState<PracticeMode>('characters');
 
   // Word practice state
   const [currentWord, setCurrentWord] = useState<WordData | null>(null);
-  const [recentWords, setRecentWords] = useState<string[]>([]);
+  const [recentWords, addRecentWord, resetRecentWords] = useRecentItems(3);
 
   // Calculate available words based on selected characters
   const availableWords = useMemo(
@@ -77,10 +79,7 @@ function App() {
     setCurrentWord(null); // Clear word when showing character
 
     // Keep track of recent characters (last 3)
-    setRecentCharacters(prev => {
-      const updated = [randomChar.id, ...prev];
-      return updated.slice(0, Math.min(3, chars.length - 1));
-    });
+    addRecentCharacter(randomChar.id, chars.length);
   };
 
   const nextWord = (words: WordData[] = availableWords) => {
@@ -100,10 +99,7 @@ function App() {
     setCurrentCharacter(null); // Clear character when showing word
 
     // Keep track of recent words (last 3)
-    setRecentWords(prev => {
-      const updated = [randomWord.id, ...prev];
-      return updated.slice(0, Math.min(3, words.length - 1));
-    });
+    addRecentWord(randomWord.id, words.length);
   };
 
   const handleAnswer = (difficulty: number) => {
@@ -146,48 +142,34 @@ function App() {
     setCurrentCharacter(null);
     setCurrentWord(null);
     setSelectedCharacters([]);
-    setRecentCharacters([]);
-    setRecentWords([]);
+    resetRecentCharacters();
+    resetRecentWords();
   };
 
   // Global keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if typing in an input field
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-        return;
+  const handleTabKey = () => {
+    if (view === 'selector') {
+      if (selectedCharacters.length > 0) {
+        setView('practice');
+      } else {
+        setView('stats');
       }
+    } else if (view === 'practice') {
+      setView('stats');
+    } else if (view === 'stats') {
+      setView('selector');
+    }
+  };
 
-      const key = e.key.toLowerCase();
-
-      // Tab: Switch between views (only when not in practice mode or practice mode is available)
-      if (key === 'tab') {
-        e.preventDefault();
-        if (view === 'selector') {
-          if (selectedCharacters.length > 0) {
-            setView('practice');
-          } else {
-            setView('stats');
-          }
-        } else if (view === 'practice') {
-          setView('stats');
-        } else if (view === 'stats') {
-          setView('selector');
-        }
-        return;
-      }
-
-      // R: Reset/restart practice (only in practice mode)
-      if (key === 'r' && view === 'practice' && selectedCharacters.length > 0) {
-        e.preventDefault();
-        moveToNext();
-        return;
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [view, selectedCharacters, moveToNext]);
+  useKeyboardShortcuts(
+    [
+      { key: 'tab', handler: handleTabKey },
+      ...(view === 'practice' && selectedCharacters.length > 0
+        ? [{ key: 'r', handler: moveToNext }]
+        : []),
+    ],
+    [view, selectedCharacters, moveToNext]
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">

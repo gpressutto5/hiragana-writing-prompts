@@ -1,4 +1,5 @@
 import type { WordData, HiraganaCharacter } from '../types';
+import { normalizeCharId } from './scriptConverter';
 
 /**
  * Minimum number of characters required to enable word practice modes
@@ -8,15 +9,15 @@ export const MIN_CHARACTERS_FOR_WORD_MODE = 10;
 /**
  * Filters words to only include those where ALL characters are in the selected set
  * @param words - Array of all available words
- * @param selectedCharacters - Array of hiragana characters the user has selected
+ * @param selectedCharacters - Array of characters the user has selected (hiragana or katakana)
  * @returns Filtered array of words that can be practiced with the selected characters
  */
 export const filterAvailableWords = (
   words: WordData[],
   selectedCharacters: HiraganaCharacter[]
 ): WordData[] => {
-  // Create a Set of selected character IDs for O(1) lookup
-  const selectedCharIds = new Set(selectedCharacters.map(char => char.id));
+  // Create a Set of selected character IDs (normalized) for O(1) lookup
+  const selectedCharIds = new Set(selectedCharacters.map(char => normalizeCharId(char.id)));
 
   // Filter words where every character ID is in the selected set
   return words.filter(word => word.characters.every(charId => selectedCharIds.has(charId)));
@@ -34,7 +35,7 @@ export const canEnableWordMode = (selectedCharacterCount: number): boolean => {
 /**
  * Gets a count of available words for the current character selection
  * @param words - Array of all available words
- * @param selectedCharacters - Array of hiragana characters the user has selected
+ * @param selectedCharacters - Array of characters the user has selected (hiragana or katakana)
  * @returns Number of words available to practice
  */
 export const getAvailableWordCount = (

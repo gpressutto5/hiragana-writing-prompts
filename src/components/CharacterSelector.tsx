@@ -10,6 +10,8 @@ function CharacterSelector({
   allCharacters,
   practiceMode,
   setPracticeMode,
+  script,
+  setScript,
 }: CharacterSelectorProps) {
   const [selectedGroups, setSelectedGroups] = useState<Set<HiraganaGroupId>>(new Set());
   const [selectedCharIds, setSelectedCharIds] = useState<Set<string>>(new Set());
@@ -75,12 +77,44 @@ function CharacterSelector({
     onStart(selectedChars);
   };
 
+  // Handle script change - clear selections when switching scripts
+  const handleScriptChange = (newScript: typeof script) => {
+    setScript(newScript);
+    setSelectedGroups(new Set());
+    setSelectedCharIds(new Set());
+  };
+
   return (
     <div>
       <h2 className="text-2xl font-bold text-gray-800 mb-4">Select Characters to Practice</h2>
+
+      {/* Script Selector */}
+      <div className="flex gap-2 mb-6">
+        <button
+          onClick={() => handleScriptChange('hiragana')}
+          className={`flex-1 px-6 py-3 rounded-lg font-semibold transition-all ${
+            script === 'hiragana'
+              ? 'bg-indigo-600 text-white shadow-lg'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          ひらがな Hiragana
+        </button>
+        <button
+          onClick={() => handleScriptChange('katakana')}
+          className={`flex-1 px-6 py-3 rounded-lg font-semibold transition-all ${
+            script === 'katakana'
+              ? 'bg-indigo-600 text-white shadow-lg'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          カタカナ Katakana
+        </button>
+      </div>
+
       <p className="text-gray-600 mb-6">
-        Choose the hiragana characters you want to practice. You can select entire groups or
-        individual characters.
+        Choose the {script === 'hiragana' ? 'hiragana' : 'katakana'} characters you want to
+        practice. You can select entire groups or individual characters.
       </p>
 
       {/* Quick actions */}
@@ -163,7 +197,7 @@ function CharacterSelector({
             />
             <div className="flex-1">
               <span className="font-medium text-gray-800">Characters Only</span>
-              <p className="text-sm text-gray-500">Practice individual hiragana characters</p>
+              <p className="text-sm text-gray-500">Practice individual characters</p>
             </div>
           </label>
 

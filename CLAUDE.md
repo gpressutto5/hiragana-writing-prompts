@@ -48,50 +48,56 @@ npm run format:check  # Check if files are formatted
 
 ### Application Structure
 
-This is a React + TypeScript single-page application for practicing hiragana writing with three main views:
+This is a React + TypeScript single-page application for practicing **hiragana and katakana** writing with three main views:
 
-1. **Character Selector** (`CharacterSelector.tsx`): UI for selecting hiragana groups to practice
-2. **Practice Mode** (`PromptCard.tsx`): Displays romaji prompts for users to write hiragana on paper, then reveals correct character for self-assessment
-3. **Statistics View** (`Statistics.tsx`): Progress tracking and performance analytics
+1. **Character Selector** (`CharacterSelector.tsx`): UI for selecting script (hiragana/katakana) and character groups to practice
+2. **Practice Mode** (`PromptCard.tsx`): Displays romaji prompts for users to write characters on paper, then reveals correct character for self-assessment
+3. **Statistics View** (`Statistics.tsx`): Progress tracking and performance analytics with script filtering
 
 ### Practice Workflow
 
-The app prompts users to practice **writing** hiragana characters:
+The app prompts users to practice **writing** hiragana or katakana characters:
 
-1. App displays **romaji** (e.g., "ka")
-2. User **writes the hiragana** (か) on paper/notebook
-3. User clicks **"Reveal"**
-4. App shows the **correct hiragana** character
-5. User **self-assesses** if they wrote it correctly (clicks ✓ or ✗)
-6. Progress is tracked in localStorage
+1. User selects **script** (hiragana or katakana) in Character Selector
+2. App displays **romaji** (e.g., "ka")
+3. User **writes the character** (か or カ) on paper/notebook
+4. User clicks **"Reveal"**
+5. App shows the **correct character**
+6. User **self-assesses** if they wrote it correctly (clicks ✓ or ✗)
+7. Progress is tracked in localStorage with script-specific IDs
 
-This is a writing practice tool, not a reading/recognition quiz. The app shows romaji prompts so users can practice drawing the correct hiragana characters.
+This is a writing practice tool, not a reading/recognition quiz. The app shows romaji prompts so users can practice drawing the correct characters.
 
 ### State Management Pattern
 
 **App.tsx** is the central state controller:
 
 - `view`: Controls which screen is displayed ('selector', 'practice', 'stats')
+- `script`: Current script selection ('hiragana' or 'katakana')
 - `selectedCharacters`: Array of character objects user wants to practice
 - `currentCharacter`: The character currently being shown
 - `recentCharacters`: Last 3 shown characters (prevents immediate repetition)
+- `allCharacters`: Computed from script selection (hiraganaData or katakanaData)
 
 **Smart randomization**: Characters are selected from `selectedCharacters` while excluding those in `recentCharacters` to avoid showing the same character consecutively.
 
 ### Data Layer
 
-**hiraganaData** (`src/data/hiragana.ts`):
+**Character Data**:
 
-- Master array of 92 hiragana character objects
+- **hiraganaData** (`src/data/hiragana.ts`): 92 hiragana character objects
+- **katakanaData** (`src/data/katakana.ts`): 92 katakana character objects
 - Each object typed as `HiraganaCharacter`: `{ id: string, hiragana: string, romaji: string, group: HiraganaGroupId, row: HiraganaRowId }`
+- Character IDs are script-prefixed: hiragana uses simple IDs (e.g., 'a', 'ka'), katakana uses 'katakana\_' prefix (e.g., 'katakana_a', 'katakana_ka')
 - Groups organized by Japanese row system (vowels, k-row, s-row, etc.)
-- Includes basic characters, dakuten (゛), and handakuten (゜)
+- Includes basic characters, dakuten (゛), handakuten (゜), and yōon combinations
 
 ### Type System
 
 **All types defined in** (`src/types/index.ts`):
 
-- `HiraganaCharacter`: Individual character with id, hiragana, romaji, group, row
+- `Script`: Union type 'hiragana' | 'katakana' for script selection
+- `HiraganaCharacter`: Individual character with id, hiragana, romaji, group, row (used for both scripts)
 - `HiraganaGroupId`: Union type of all valid group IDs
 - `HiraganaRowId`: Union type of all valid row IDs
 - `ProgressData`: Dictionary mapping character IDs to progress
@@ -107,7 +113,7 @@ This is a writing practice tool, not a reading/recognition quiz. The app shows r
 ```typescript
 // Storage structure - ProgressData type
 {
-  "characterId": {
+  "characterId": {  // e.g., 'a' for hiragana, 'katakana_a' for katakana
     attempts: number,
     correct: number,
     lastAttempt: string | null,
@@ -120,8 +126,12 @@ This is a writing practice tool, not a reading/recognition quiz. The app shows r
 
 - `saveAttempt(characterId, isCorrect)`: Records each practice attempt
 - `getCharacterStats(characterId)`: Returns stats for specific character
-- `getOverallStats()`: Aggregates all progress data
+- `getOverallStats()`: Aggregates all progress data (both scripts)
+- `getOverallStatsByScript(script)`: Aggregates progress for specific script
+- `getRecentAttemptsByScript(script, limit)`: Gets recent attempts filtered by script
 - `resetProgress()`: Clears all stored data
+
+**Script Separation**: Character IDs are naturally separated by prefix, so both scripts share the same localStorage key but maintain separate progress tracking. The Statistics view can filter by script to show hiragana-only, katakana-only, or combined statistics.
 
 All progress is client-side only—no backend or authentication.
 
@@ -129,9 +139,9 @@ All progress is client-side only—no backend or authentication.
 
 ```
 App.tsx
-  ├─> CharacterSelector: receives hiraganaData: HiraganaCharacter[], calls onStart(characters)
+  ├─> CharacterSelector: receives allCharacters, script, setScript, calls onStart(characters)
   ├─> PromptCard: receives currentCharacter: HiraganaCharacter, calls onAnswer(isCorrect), onBack()
-  └─> Statistics: independently reads from progressTracker
+  └─> Statistics: independently reads from progressTracker, filters by script
 ```
 
 All component props are strictly typed via interfaces defined in `src/types/index.ts`.
@@ -230,7 +240,7 @@ All checks must pass for the workflow to succeed. The CI badge in the README sho
 
 The project is deployed to **Vercel** with automatic deployments on every push to `main` and preview deployments for every PR.
 
-**Production URL:** https://hiragana-writing-prompts.vercel.app
+**Production URL:** https://kana-writing-prompts.vercel.app
 
 ### Vercel Deployment
 
@@ -250,7 +260,7 @@ The project is deployed to **Vercel** with automatic deployments on every push t
 
 **PR Preview Workflow:**
 
-- Every PR gets a unique preview URL (e.g., `https://hiragana-writing-prompts-git-feature-*.vercel.app`)
+- Every PR gets a unique preview URL (e.g., `https://kana-writing-prompts-git-feature-*.vercel.app`)
 - Vercel bot comments on PRs with preview links
 - Previews update automatically on new commits
 - Previews are deleted when PR is closed/merged
@@ -306,10 +316,8 @@ setCurrentCharacter(randomChar);
 The README lists potential enhancements:
 
 - Stroke order diagrams
-- Spaced repetition algorithm
-- Katakana support
-- Audio pronunciation
-- Combination characters (きゃ, etc.)
+- Practice sessions with time limits
+- Export/import progress data
 - Dark mode
 
 When implementing these, maintain the existing architecture patterns and localStorage-based persistence approach.

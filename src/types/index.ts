@@ -1,3 +1,6 @@
+// Script types
+export type Script = 'hiragana' | 'katakana';
+
 // Core hiragana character types
 export type HiraganaGroupId =
   | 'vowels'
@@ -130,6 +133,8 @@ export interface CharacterSelectorProps {
   allCharacters: HiraganaCharacter[];
   practiceMode: PracticeMode;
   setPracticeMode: (mode: PracticeMode) => void;
+  script: Script;
+  setScript: (script: Script) => void;
 }
 
 // Discriminated union for PromptCard props
@@ -137,12 +142,14 @@ export type PromptCardProps =
   | {
       type: 'character';
       character: HiraganaCharacter;
+      script: Script;
       onAnswer: (difficulty: number) => void; // 0 = again, 2 = hard, 3 = good, 4 = easy
       onBack: () => void;
     }
   | {
       type: 'word';
       word: WordData;
+      script: Script;
       onAnswer: (incorrectCharacterIds: string[]) => void; // Empty array if all correct
       onBack: () => void;
     };

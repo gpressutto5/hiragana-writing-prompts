@@ -1,16 +1,15 @@
+import { useState } from 'react';
 import {
   getOverallStats,
+  getOverallStatsByScript,
   getProgress,
   getCharacterStats,
   resetProgress,
-  getWordOverallStats,
-  getAllWordStats,
 } from '../utils/progressTracker';
 import { hiraganaData } from '../data/hiragana';
-import { wordsData } from '../data/words';
+import { katakanaData } from '../data/katakana';
 import Calendar from './Calendar';
-import type { HiraganaCharacter, CharacterStats, WordStats } from '../types';
-import { WordPerformanceList } from './shared/WordPerformanceList';
+import type { HiraganaCharacter, CharacterStats, Script } from '../types';
 import { getSuccessRateColor } from '../utils/colorUtils';
 
 interface CharacterWithStats extends HiraganaCharacter {
@@ -21,18 +20,30 @@ interface CharacterWithStats extends HiraganaCharacter {
   };
 }
 
-interface WordWithStats {
-  id: string;
-  word: string;
-  romaji: string;
-  meaning: string;
-  stats: WordStats;
-}
-
 function Statistics() {
+  const [scriptFilter, setScriptFilter] = useState<Script | 'all'>('all');
+
   const overallStats = getOverallStats();
   const progress = getProgress();
-  const wordOverallStats = getWordOverallStats();
+
+  // Get script-specific stats
+  const hiraganaStats = getOverallStatsByScript('hiragana');
+  const katakanaStats = getOverallStatsByScript('katakana');
+
+  // Determine which data to show based on filter
+  const displayedStats =
+    scriptFilter === 'all'
+      ? overallStats
+      : scriptFilter === 'hiragana'
+        ? hiraganaStats
+        : katakanaStats;
+
+  const allCharacters =
+    scriptFilter === 'all'
+      ? [...hiraganaData, ...katakanaData]
+      : scriptFilter === 'hiragana'
+        ? hiraganaData
+        : katakanaData;
 
   // Helper to calculate source breakdown for a character
   const getSourceBreakdown = (characterId: string) => {
@@ -58,7 +69,7 @@ function Statistics() {
   };
 
   // Get characters with attempts, sorted by success rate (lowest first)
-  const charactersWithStats: CharacterWithStats[] = hiraganaData
+  const charactersWithStats: CharacterWithStats[] = allCharacters
     .map(char => ({
       ...char,
       stats: getCharacterStats(char.id),
@@ -67,34 +78,13 @@ function Statistics() {
     .filter(char => char.stats.attempts > 0)
     .sort((a, b) => a.stats.successRate - b.stats.successRate);
 
-  // Get word statistics
-  const allWordStats = getAllWordStats();
-  const wordsWithStats: WordWithStats[] = allWordStats.map(({ wordId, stats }) => {
-    const wordData = wordsData.find(w => w.id === wordId);
-    return {
-      id: wordId,
-      word: wordData?.word || '',
-      romaji: wordData?.romaji || '',
-      meaning: wordData?.meaning || '',
-      stats,
-    };
-  });
-
-  // Top 5 words by success rate (descending)
-  const topWords = [...wordsWithStats]
-    .sort((a, b) => b.stats.successRate - a.stats.successRate)
-    .slice(0, 5);
-
-  // Bottom 5 words needing practice (ascending)
-  const wordsNeedingPractice = [...wordsWithStats]
-    .sort((a, b) => a.stats.successRate - b.stats.successRate)
-    .slice(0, 5);
+  const hasAnyProgress = Object.keys(progress).length > 0;
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800">Your Progress</h2>
-        {Object.keys(progress).length > 0 && (
+        {hasAnyProgress && (
           <button
             onClick={handleReset}
             className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm"
@@ -109,25 +99,67 @@ function Statistics() {
         <Calendar />
       </div>
 
+      {/* Script Filter */}
+      <div className="flex gap-2 mb-6">
+        <button
+          onClick={() => setScriptFilter('all')}
+          className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${
+            scriptFilter === 'all'
+              ? 'bg-indigo-600 text-white shadow-lg'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          All Scripts
+        </button>
+        <button
+          onClick={() => setScriptFilter('hiragana')}
+          className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${
+            scriptFilter === 'hiragana'
+              ? 'bg-indigo-600 text-white shadow-lg'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          ひらがな Hiragana
+        </button>
+        <button
+          onClick={() => setScriptFilter('katakana')}
+          className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${
+            scriptFilter === 'katakana'
+              ? 'bg-indigo-600 text-white shadow-lg'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          カタカナ Katakana
+        </button>
+      </div>
+
       {/* Overall Character Statistics */}
-      <h3 className="text-xl font-bold text-gray-800 mb-4">Character Practice</h3>
+      <h3 className="text-xl font-bold text-gray-800 mb-4">
+        {scriptFilter === 'all'
+          ? 'All Character Practice'
+          : scriptFilter === 'hiragana'
+            ? 'Hiragana Practice'
+            : 'Katakana Practice'}
+      </h3>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6 text-center">
-          <div className="text-3xl font-bold text-blue-900">{overallStats.totalAttempts}</div>
+          <div className="text-3xl font-bold text-blue-900">{displayedStats.totalAttempts}</div>
           <div className="text-sm text-blue-700 mt-1">Total Attempts</div>
         </div>
         <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6 text-center">
-          <div className="text-3xl font-bold text-green-900">{overallStats.totalCorrect}</div>
+          <div className="text-3xl font-bold text-green-900">{displayedStats.totalCorrect}</div>
           <div className="text-sm text-green-700 mt-1">Correct</div>
         </div>
         <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6 text-center">
           <div className="text-3xl font-bold text-purple-900">
-            {overallStats.overallSuccessRate.toFixed(0)}%
+            {displayedStats.overallSuccessRate.toFixed(0)}%
           </div>
           <div className="text-sm text-purple-700 mt-1">Success Rate</div>
         </div>
         <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-6 text-center">
-          <div className="text-3xl font-bold text-indigo-900">{overallStats.charactersStudied}</div>
+          <div className="text-3xl font-bold text-indigo-900">
+            {displayedStats.charactersStudied}
+          </div>
           <div className="text-sm text-indigo-700 mt-1">Characters Studied</div>
         </div>
       </div>
@@ -192,39 +224,6 @@ function Statistics() {
           <h3 className="text-xl font-semibold text-gray-800 mb-2">No practice data yet</h3>
           <p className="text-gray-600">Start practicing to see your progress here!</p>
         </div>
-      )}
-
-      {/* Word Statistics */}
-      {wordOverallStats.attempted > 0 && (
-        <>
-          <h3 className="text-xl font-bold text-gray-800 mb-4">Word Practice</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
-            <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg p-6 text-center">
-              <div className="text-3xl font-bold text-amber-900">{wordOverallStats.attempted}</div>
-              <div className="text-sm text-amber-700 mt-1">Words Practiced</div>
-            </div>
-            <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-lg p-6 text-center">
-              <div className="text-3xl font-bold text-emerald-900">
-                {wordOverallStats.averageSuccess.toFixed(0)}%
-              </div>
-              <div className="text-sm text-emerald-700 mt-1">Average Success</div>
-            </div>
-            <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-lg p-6 text-center">
-              <div className="text-3xl font-bold text-cyan-900">{wordOverallStats.totalWords}</div>
-              <div className="text-sm text-cyan-700 mt-1">Total Words</div>
-            </div>
-          </div>
-
-          {/* Top Words */}
-          <WordPerformanceList title="🏆 Top Words" words={topWords} variant="top" />
-
-          {/* Words Needing Practice */}
-          <WordPerformanceList
-            title="📚 Words Needing Practice"
-            words={wordsNeedingPractice}
-            variant="needs-practice"
-          />
-        </>
       )}
     </div>
   );

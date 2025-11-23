@@ -10,9 +10,10 @@ import { AudioControlsPanel } from './shared/AudioControlsPanel';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { toggleSetItem } from '../utils/setUtils';
 import { getDifficultyButtonClass } from '../utils/buttonStyles';
+import { hiraganaToKatakana } from '../utils/scriptConverter';
 
 function PromptCard(props: PromptCardProps) {
-  const { type, onBack } = props;
+  const { type, onBack, script } = props;
   const [revealed, setRevealed] = useState(false);
   const [autoPlay, setAutoPlay] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -25,7 +26,12 @@ function PromptCard(props: PromptCardProps) {
   // Get the appropriate data based on type
   const character = type === 'character' ? props.character : null;
   const word = type === 'word' ? props.word : null;
-  const displayText = character?.hiragana || word?.word || '';
+
+  // Convert word text to katakana if needed
+  const wordText = word?.word || '';
+  const displayText =
+    character?.hiragana || (script === 'katakana' ? hiraganaToKatakana(wordText) : wordText);
+
   const romaji = character?.romaji || word?.romaji || '';
   const meaning = word?.meaning;
 
@@ -79,9 +85,13 @@ function PromptCard(props: PromptCardProps) {
 
     if (type === 'character' && difficulty !== undefined) {
       props.onAnswer(difficulty);
-    } else if (type === 'word') {
-      // Convert Set to array for word answer
-      props.onAnswer(Array.from(incorrectCharIds));
+    } else if (type === 'word' && word) {
+      // Convert incorrect IDs to script-specific format
+      const scriptSpecificIncorrectIds = Array.from(incorrectCharIds).map(id =>
+        script === 'katakana' ? `katakana_${id}` : id
+      );
+
+      props.onAnswer(scriptSpecificIncorrectIds);
     }
 
     setRevealed(false);
@@ -173,8 +183,8 @@ function PromptCard(props: PromptCardProps) {
             <div className="text-center mb-8">
               <p className="text-gray-600 mb-4 h-12 flex items-center justify-center">
                 {type === 'character'
-                  ? 'Write the hiragana character in your notebook, then click reveal to check your answer.'
-                  : 'Write the word in hiragana in your notebook, then click reveal to check your answer.'}
+                  ? 'Write the character in your notebook, then click reveal to check your answer.'
+                  : 'Write the word in your notebook, then click reveal to check your answer.'}
               </p>
               <button
                 onClick={handleReveal}

@@ -10,6 +10,7 @@ import type {
   WordProgress,
   WordStats,
   WordOverallStats,
+  Script,
 } from '../types';
 import { getDateString } from './dateUtils';
 import { calculateSuccessRate } from './mathUtils';
@@ -211,10 +212,48 @@ export const getOverallStats = (): OverallStats => {
   };
 };
 
+// Get overall statistics for a specific script
+export const getOverallStatsByScript = (script: Script): OverallStats => {
+  const progress = getProgress();
+  const isKatakana = script === 'katakana';
+  const characterIds = Object.keys(progress).filter(id =>
+    isKatakana ? id.startsWith('katakana_') : !id.startsWith('katakana_')
+  );
+
+  if (characterIds.length === 0) {
+    return {
+      totalAttempts: 0,
+      totalCorrect: 0,
+      overallSuccessRate: 0,
+      charactersStudied: 0,
+    };
+  }
+
+  let totalAttempts = 0;
+  let totalCorrect = 0;
+
+  characterIds.forEach(id => {
+    const charProgress = progress[id];
+    if (charProgress) {
+      totalAttempts += charProgress.attempts;
+      totalCorrect += charProgress.correct;
+    }
+  });
+
+  return {
+    totalAttempts,
+    totalCorrect,
+    overallSuccessRate: calculateSuccessRate(totalCorrect, totalAttempts),
+    charactersStudied: characterIds.length,
+  };
+};
+
 // Reset all progress
 export const resetProgress = (): boolean => {
   try {
     localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(WORD_PROGRESS_KEY);
+    localStorage.removeItem(DAILY_PRACTICE_KEY);
     return true;
   } catch (error) {
     console.error('Error resetting progress:', error);
@@ -234,6 +273,34 @@ export const getRecentAttempts = (limit = 10): RecentAttempt[] => {
         ...attempt,
       });
     });
+  });
+
+  // Sort by timestamp descending
+  allAttempts.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+  return allAttempts.slice(0, limit);
+};
+
+// Get recent attempts for a specific script (last N)
+export const getRecentAttemptsByScript = (script: Script, limit = 10): RecentAttempt[] => {
+  const progress = getProgress();
+  const isKatakana = script === 'katakana';
+  const allAttempts: RecentAttempt[] = [];
+
+  Object.entries(progress).forEach(([characterId, data]) => {
+    // Filter by script based on character ID prefix
+    const matchesScript = isKatakana
+      ? characterId.startsWith('katakana_')
+      : !characterId.startsWith('katakana_');
+
+    if (matchesScript) {
+      data.history.forEach(attempt => {
+        allAttempts.push({
+          characterId,
+          ...attempt,
+        });
+      });
+    }
   });
 
   // Sort by timestamp descending

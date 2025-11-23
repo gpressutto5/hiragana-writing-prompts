@@ -3,6 +3,7 @@ import CharacterSelector from './components/CharacterSelector';
 import PromptCard from './components/PromptCard';
 import Statistics from './components/Statistics';
 import { hiraganaData, getRandomCharacter } from './data/hiragana';
+import { katakanaData } from './data/katakana';
 import { wordsData } from './data/words';
 import {
   saveAttempt,
@@ -10,17 +11,22 @@ import {
   saveWordAttemptWithCharacters,
 } from './utils/progressTracker';
 import { filterAvailableWords } from './utils/wordFilter';
-import type { HiraganaCharacter, ViewType, PracticeMode, WordData } from './types';
+import { mapCharIdsToScript } from './utils/scriptConverter';
+import type { HiraganaCharacter, ViewType, PracticeMode, WordData, Script } from './types';
 import { useRecentItems } from './hooks/useRecentItems';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import './App.css';
 
 function App() {
   const [view, setView] = useState<ViewType>('selector');
+  const [script, setScript] = useState<Script>('hiragana');
   const [selectedCharacters, setSelectedCharacters] = useState<HiraganaCharacter[]>([]);
   const [currentCharacter, setCurrentCharacter] = useState<HiraganaCharacter | null>(null);
   const [recentCharacters, addRecentCharacter, resetRecentCharacters] = useRecentItems(3);
   const [practiceMode, setPracticeMode] = useState<PracticeMode>('characters');
+
+  // Get the appropriate character data based on selected script
+  const allCharacters = script === 'hiragana' ? hiraganaData : katakanaData;
 
   // Word practice state
   const [currentWord, setCurrentWord] = useState<WordData | null>(null);
@@ -115,8 +121,11 @@ function App() {
   const handleWordAnswer = (incorrectCharacterIds: string[]) => {
     if (!currentWord) return;
 
+    // Convert character IDs to script-specific format
+    const scriptSpecificCharIds = mapCharIdsToScript(currentWord.characters, script);
+
     // Save word attempt with character breakdown
-    saveWordAttemptWithCharacters(currentWord.id, currentWord.characters, incorrectCharacterIds);
+    saveWordAttemptWithCharacters(currentWord.id, scriptSpecificCharIds, incorrectCharacterIds);
 
     // Move to next item based on practice mode
     moveToNext();
@@ -175,8 +184,8 @@ function App() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <header className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-indigo-900 mb-2">ひらがな Practice</h1>
-          <p className="text-gray-600">Master hiragana through random practice</p>
+          <h1 className="text-4xl font-bold text-indigo-900 mb-2">かな Practice</h1>
+          <p className="text-gray-600">Master kana through random practice</p>
         </header>
 
         {/* Navigation */}
@@ -219,9 +228,11 @@ function App() {
           {view === 'selector' && (
             <CharacterSelector
               onStart={startPractice}
-              allCharacters={hiraganaData}
+              allCharacters={allCharacters}
               practiceMode={practiceMode}
               setPracticeMode={setPracticeMode}
+              script={script}
+              setScript={setScript}
             />
           )}
 
@@ -229,6 +240,7 @@ function App() {
             <PromptCard
               type="character"
               character={currentCharacter}
+              script={script}
               onAnswer={handleAnswer}
               onBack={backToSelector}
             />
@@ -238,6 +250,7 @@ function App() {
             <PromptCard
               type="word"
               word={currentWord}
+              script={script}
               onAnswer={handleWordAnswer}
               onBack={backToSelector}
             />

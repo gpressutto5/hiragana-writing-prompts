@@ -1,30 +1,32 @@
-# Hiragana Writing Practice App
+# Kana Writing Practice App
 
-[![CI](https://github.com/gpressutto5/hiragana-writing-prompts/actions/workflows/ci.yml/badge.svg)](https://github.com/gpressutto5/hiragana-writing-prompts/actions/workflows/ci.yml)
+[![CI](https://github.com/gpressutto5/kana-writing-prompts/actions/workflows/ci.yml/badge.svg)](https://github.com/gpressutto5/kana-writing-prompts/actions/workflows/ci.yml)
 
-A simple, focused web app for practicing hiragana writing through random prompts and self-assessment.
+A simple, focused web app for practicing hiragana and katakana writing through random prompts and self-assessment.
 
-**🚀 [Try it live on Vercel](https://hiragana-writing-prompts.vercel.app)**
+**🚀 [Try it live on Vercel](https://kana-writing-prompts.vercel.app)**
 
 ## Features
 
 ### Core Features
 
-- ✅ **Character Selection**: Choose which hiragana characters you want to practice
+- ✅ **Script Selection**: Choose between hiragana or katakana practice
+- ✅ **Character Selection**: Choose which characters you want to practice
 - ✅ **Group Selection**: Select entire rows (vowels, ka-row, sa-row, etc.) at once
 - ✅ **Random Prompts**: Displays random romaji from your selected characters
 - ✅ **Smart Randomization**: Avoids showing the same character repeatedly
-- ✅ **Reveal & Check**: Click to reveal the correct hiragana, then self-assess
+- ✅ **Reveal & Check**: Click to reveal the correct character, then self-assess
 - ✅ **Progress Tracking**: Automatically saves your practice history to localStorage
 - ✅ **Statistics Dashboard**: View your overall performance and per-character stats
 - ✅ **Responsive Design**: Works on desktop, tablet, and mobile devices
 
 ### Character Coverage
 
-- Complete hiragana chart (all 92 characters)
+- Complete hiragana and katakana charts (92 characters each)
 - Basic characters (a, i, u, e, o, ka, ki, ku, ke, ko, etc.)
 - Dakuten characters (ga, gi, gu, ge, go, etc.)
 - Handakuten characters (pa, pi, pu, pe, po)
+- Yōon combinations (kya, kyu, kyo, etc.)
 
 ## Getting Started
 
@@ -38,7 +40,7 @@ A simple, focused web app for practicing hiragana writing through random prompts
 1. Clone the repository or navigate to the project directory:
 
    ```bash
-   cd hiragana-writing-prompts
+   cd kana-writing-prompts
    ```
 
 2. Install dependencies:
@@ -72,7 +74,7 @@ npm run preview
 ### Deployment
 
 This project is automatically deployed to Vercel on every push to the `main` branch. The live version is available at:
-https://hiragana-writing-prompts.vercel.app
+https://kana-writing-prompts.vercel.app
 
 Vercel also creates preview deployments for every pull request, allowing you to test changes before merging.
 
@@ -81,13 +83,14 @@ Vercel also creates preview deployments for every pull request, allowing you to 
 ### Step 1: Select Characters
 
 1. Click on "Select Characters" tab
-2. Choose the hiragana groups you want to practice
-3. Click "Start Practice" when ready
+2. Choose your script (hiragana or katakana)
+3. Choose the character groups you want to practice
+4. Click "Start Practice" when ready
 
 ### Step 2: Practice
 
 1. A random romaji will be displayed (e.g., "ka")
-2. Write the corresponding hiragana in your notebook
+2. Write the corresponding character in your notebook
 3. Click "Reveal Answer" to see the correct character
 4. Mark whether you got it correct or incorrect
 5. Continue with the next character
@@ -102,14 +105,15 @@ Vercel also creates preview deployments for every pull request, allowing you to 
 ## Project Structure
 
 ```
-hiragana-writing-prompts/
+kana-writing-prompts/
 ├── src/
 │   ├── components/          # React components (TypeScript)
 │   │   ├── CharacterSelector.tsx
 │   │   ├── PromptCard.tsx
 │   │   └── Statistics.tsx
-│   ├── data/                # Hiragana character data
-│   │   └── hiragana.ts
+│   ├── data/                # Character data
+│   │   ├── hiragana.ts
+│   │   └── katakana.ts
 │   ├── types/               # TypeScript type definitions
 │   │   └── index.ts
 │   ├── utils/               # Utility functions
@@ -178,9 +182,9 @@ hiragana-writing-prompts/
 - [ ] Stroke order diagrams for visual reference
 - [x] Spaced repetition algorithm for optimal practice scheduling
 - [ ] Practice sessions with time limits
-- [ ] Support for katakana characters
+- [x] Support for katakana characters
 - [x] Audio pronunciation for each character
-- [ ] Combination characters (きゃ, きゅ, きょ, etc.)
+- [x] Combination characters (yōon: きゃ, きゅ, きょ, etc.)
 - [ ] Export/import progress data
 - [ ] Dark mode toggle
 
@@ -194,4 +198,4 @@ MIT License - feel free to use this for your own learning or projects.
 
 ## Acknowledgments
 
-Built for Japanese language learners who want to master hiragana through consistent, focused practice. がんばって! (Ganbatte! / Good luck!)
+Built for Japanese language learners who want to master hiragana and katakana through consistent, focused practice. がんばって! (Ganbatte! / Good luck!)
